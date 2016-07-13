@@ -14,6 +14,8 @@ var settings = {
 
 
 // Hooray, pseudo-OOP JS
+// Ugh figure out how to make it less janky to reference the prototype from
+// within prototypal methods
 
 
 /* Canvas graphics primitives */
@@ -24,7 +26,6 @@ var CanvasRenderer = function(ctx) {
 _.extend(CanvasRenderer.prototype, {
 
   reset: function() {
-    console.log(this);
     this.ctx.clearRect(0, 0, settings.canvas.width, settings.canvas.height);
   },
 
@@ -58,11 +59,12 @@ _.extend(CanvasRenderer.prototype, {
 
 var Plotter = function(ctx, x, y) {
   this.set_origin(x, y);
-  console.log(this.__proto__.constructor);
-  this.__proto__.constructor.apply(this, [ctx]);
+  Plotter.prototype.__proto__.constructor.apply(this, [ctx]);
+  console.log(this.origin);
 };
 Plotter.prototype = Object.create(CanvasRenderer.prototype);
 _.extend(Plotter.prototype, {
+  constructor: Plotter,
 
   draw: function(step, r) {
     this.reset();
@@ -101,19 +103,19 @@ _.extend(Plotter.prototype, {
   /* Overridden primitives */
 
   draw_circ: function(x, y, r) {
-    this.initialize.__super__.draw_circ.apply(this, [
+    Plotter.prototype.__proto__.draw_circ.apply(this, [
       x + this.origin.x, y + this.origin.y, r,
     ]);
   },
 
   draw_dot: function(x, y, r) {
-    this.initialize.__super__.draw_dot.apply(this, [
+    Plotter.prototype.__proto__.draw_dot.apply(this, [
       x + this.origin.x, y + this.origin.y, r,
     ]);
   },
 
   draw_line: function(x0, y0, x1, y1) {
-    this.initialize.__super__.draw_line.apply(this, [
+    Plotter.prototype.__proto__.draw_line.apply(this, [
       x0 + this.origin.x, y0 + this.origin.y,
       x1 + this.origin.x, y1 + this.origin.y,
     ]);
@@ -128,13 +130,15 @@ _.extend(Plotter.prototype, {
 
 var TravelingPlotter = function(ctx, x, y, traveling_function) {
   this.traveling_function = traveling_function;
-  Plotter.prototype.initialize.apply(this, [ctx, x, y]);
+  TravelingPlotter.prototype.__proto__.constructor.apply(this, [ctx, x, y]);
+  console.log(this);
 };
 TravelingPlotter.prototype = Object.create(Plotter.prototype);
 _.extend(TravelingPlotter.prototype, {
+  constructor: TravelingPlotter,
 
   draw: function(step, r) {
-    this.initialize.__super__.draw.apply(this, arguments);
+    this.constructor.prototype.__proto__.draw.apply(this, arguments);
   },
 
 });
@@ -145,7 +149,7 @@ $(function() {
   var canvas = $('#canvas').get(0);
   var ctx = canvas.getContext("2d");
   var step = 0;
-  var renderer = new Plotter(ctx, settings.CIRCLE_X, settings.CIRCLE_Y);
+  var renderer = new TravelingPlotter(ctx, settings.CIRCLE_X, settings.CIRCLE_Y);
 
   settings.canvas.width = canvas.width;
   settings.canvas.height = canvas.height;
@@ -161,31 +165,3 @@ $(function() {
     if (step > settings.STEPS) { step = 0; }
   };
 });
-
-
-function SuperSuperClass() {};
-_.extend(SuperSuperClass.prototype, {
-  foo: function() {
-    console.log("supersuperclass");
-  },
-});
-
-function SuperClass() {};
-SuperClass.prototype = Object.create(SuperSuperClass.prototype);
-_.extend(SuperClass.prototype, {
-  foo: function() {
-    console.log("superclass");
-    SuperClass.prototype.__proto__.foo.apply(this, arguments);
-  },
-});
-
-function Class() {};
-Class.prototype = Object.create(SuperClass.prototype);
-_.extend(Class.prototype, {
-  foo: function() {
-    console.log("class");
-    Class.prototype.__proto__.foo.apply(this, arguments);
-  },
-});
-
-(new Class()).foo();
