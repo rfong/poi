@@ -229,6 +229,10 @@ _.extend(TravelingPlotter.prototype, {
     this.set_origin.apply(this, origin);
   },
 
+  set_patterns: function(patterns) {
+    this.patterns = patterns;
+  },
+
 });
 
 
@@ -264,6 +268,7 @@ var pattern_generators = {
     var phase_shift = is_phase_shifted ? Math.PI/n : 0;
     rotation = (rotation || 0);
     if (!is_phase_shifted) rotation += Math.PI/n;
+    // oh god why won't these rotate right
 
     return function(theta, d) {
       theta += rotation;
@@ -335,37 +340,3 @@ patterns = _.chain(patterns).map(function(pattern, name) {
   console.log(name, pattern)
   return [name, new Pattern(pattern)];
 }).object().value();
-
-
-
-// main
-$(function() {
-  var canvas = $('#canvas').get(0);
-  var ctx = canvas.getContext("2d");
-  var theta = 0;
-  var origin = new Vector(300, 300);
-  var r = 125;
-
-  var renderer = new TravelingPlotter(
-    ctx, origin.x, origin.y, [
-      patterns.extension,
-      patterns.triquetra,
-      //patterns.four_petal_inspin,
-      patterns.four_petal_antispin,
-    ]
-  );
-
-  settings.canvas.width = canvas.width;
-  settings.canvas.height = canvas.height;
-
-  // main loop
-  setInterval(function() {
-    renderer.draw(theta, r);
-    advanceTime();
-  }, settings.REFRESH);
-
-  function advanceTime() {
-    theta += settings.d_theta;
-    if (theta > 2*Math.PI) { theta = 0; }
-  };
-});

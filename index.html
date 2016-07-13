@@ -25,41 +25,8 @@
   <script src="lib/backbone.js"></script>
   <script src="lib/vector.js"></script>
 
-  <script type="text/javascript" src="index.js"></script>
-
-  <script type="text/javascript">
-var app = angular.module('PoiApp', []);
-
-app.controller('PoiCtrl', function($scope, $http) {
-
-  $scope.options = {};
-
-  $scope.setOption = function(option) {
-    // These options are dynamically read by the plotter, so we don't need
-    // to do anything else. I know, it's gross :x
-    window.options[option] = $scope.options[option];
-  };
-
-});
-
-// Checkbox control directive
-app.directive('controlCheckbox', function() {
-  return {
-    restrict: 'A',
-    template: function(element, attributes) {
-      return '' +
-      '<span class="control">' + attributes.label +
-      '  <input type="checkbox" ' +
-      '         ng-model="options.' + attributes.name + '" ' +
-      '         ng-init="options.' + attributes.name + '= ' + attributes.value + '; ' +
-      '                  setOption(\'' + attributes.name + '\')" ' +
-      '         ng-change="setOption(\'' + attributes.name + '\')" ' +
-      '         />' +
-      '</span>';
-    },
-  };
-});
-  </script>
+  <script type="text/javascript" src="poi.js"></script>
+  <script type="text/javascript" src="app.js"></script>
 
   <link rel="stylesheet" href="index.css" />
 
