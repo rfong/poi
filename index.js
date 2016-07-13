@@ -79,9 +79,8 @@ Plotter.prototype = Object.create(CanvasRenderer.prototype);
 _.extend(Plotter.prototype, {
   constructor: Plotter,
 
-  draw: function(theta, r, phase_shift) {
-    phase_shift = phase_shift || 0;
-    this.draw_polar_point(theta + phase_shift, r);
+  draw: function(theta, r) {
+    this.draw_polar_point(theta, r);
   },
 
   refresh: function(theta, r) {
@@ -172,7 +171,7 @@ _.extend(TravelingPlotter.prototype, {
 
       // Draw
       self.constructor.prototype.__proto__.draw.apply(self, [
-        theta * pattern.frequency, r, pattern.phase_shift
+        pattern.shift_theta(theta), r,
       ]);
 
       // todo: maybe make sure origins are drawn on top since they're smaller?
@@ -188,11 +187,11 @@ _.extend(TravelingPlotter.prototype, {
   trace_pattern: function(pattern, r) {
     // Persistent trace of a pattern
     this.ctx.strokeStyle = settings.point.stroke_color;
-    var circle_fn = pattern_generators.circle(pattern.frequency);
+    var circle_fn = pattern_generators.circle();
     this.trace_function(
       function(theta, r) {
         return pattern.traveling_function(theta, r).add(
-               circle_fn(theta, r));
+               circle_fn(pattern.shift_theta(theta), r));
       }, r);
   },
 
@@ -245,11 +244,6 @@ var traveling_functions = {
     return new Vector(theta < Math.PI ? theta : 2*Math.PI - theta, 0);
   },
 
-  // Circle
-  extension: function(theta, r) {
-    return new Vector(r * Math.cos(theta), r * Math.sin(theta));
-  },
-
   // Circle phase shifted by π
   isolation: function(theta, r) {
     theta += Math.PI;
@@ -257,6 +251,7 @@ var traveling_functions = {
   },
 
 };
+
 
 // Parametric generators that return functions fitting the format above.
 var pattern_generators = {
@@ -267,7 +262,8 @@ var pattern_generators = {
    */
   polygon: function(n, is_phase_shifted, rotation) {
     var phase_shift = is_phase_shifted ? Math.PI/n : 0;
-    rotation = (rotation || 0) + Math.PI/n;  // this rotates it to point up
+    rotation = (rotation || 0);
+    if (!is_phase_shifted) rotation += Math.PI/n;
 
     return function(theta, d) {
       theta += rotation;
@@ -280,6 +276,7 @@ var pattern_generators = {
   },
   
   circle: function(frequency) {
+    frequency = frequency || 1;
     return function(theta, r) {
       theta *= frequency;
       return new Vector(r * Math.cos(theta), r * Math.sin(theta));
@@ -299,19 +296,19 @@ var patterns = {
 
   extension: {
     frequency: 1,
-    traveling_function: traveling_functions.extension,
+    traveling_function: pattern_generators.circle(),
   },
 
   triquetra: {
     frequency: -2,
     phase_shift: Math.PI/3,
-    traveling_function: pattern_generators.polygon(3),
+    traveling_function: pattern_generators.polygon(3, false),
   },
 
   four_petal_antispin: {
     frequency: -3,
-    phase_shift: -Math.PI/2,
-    traveling_function: pattern_generators.polygon(4),
+    phase_shift: Math.PI/2,
+    traveling_function: pattern_generators.polygon(4, false, Math.PI/4),
   },
 
   four_petal_inspin: {
@@ -321,12 +318,31 @@ var patterns = {
 
 };
 
+// struct for pattern specifications (so we get defaults)
+function Pattern(options) {
+  var self = this;
+  this.traveling_function = options.traveling_function;  // must exist
+  this.frequency = options.frequency || 1;
+  this.phase_shift = options.phase_shift || 0;
+
+  this.shift_theta = function(theta, pattern) {
+    return (theta + self.phase_shift) * self.frequency;
+  };
+}
+
+// map specs to this struct
+patterns = _.chain(patterns).map(function(pattern, name) {
+  console.log(name, pattern)
+  return [name, new Pattern(pattern)];
+}).object().value();
+
+
 
 // main
 $(function() {
   var canvas = $('#canvas').get(0);
   var ctx = canvas.getContext("2d");
-  var theta= 0;
+  var theta = 0;
   var origin = new Vector(300, 300);
   var r = 125;
 
@@ -335,7 +351,7 @@ $(function() {
       patterns.extension,
       patterns.triquetra,
       //patterns.four_petal_inspin,
-      //patterns.four_petal_antispin,
+      patterns.four_petal_antispin,
     ]
   );
 
