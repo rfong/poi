@@ -25,14 +25,9 @@ var settings = {
   point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
 };
 
+settings.d_theta = 2 * Math.PI / settings.STEPS;
+
 window.options = {};
-
-
-/* math convenience functions */
-
-function step_to_radians(step) {
-  return 2 * Math.PI * step / settings.STEPS;
-};
 
 
 // Hooray, pseudo-OOP JS
@@ -84,13 +79,14 @@ Plotter.prototype = Object.create(CanvasRenderer.prototype);
 _.extend(Plotter.prototype, {
   constructor: Plotter,
 
-  draw: function(step, r) {
-    this.draw_polar_point(step_to_radians(step), r);
+  draw: function(theta, r, phase_shift) {
+    phase_shift = phase_shift || 0;
+    this.draw_polar_point(theta + phase_shift, r);
   },
 
-  refresh: function(step, r) {
+  refresh: function(theta, r) {
     this.reset();
-    this.draw(step, r);
+    this.draw(theta, r);
   },
 
   set_origin: function(x, y) {
@@ -103,8 +99,8 @@ _.extend(Plotter.prototype, {
 
   /* Convenience drawing methods */
 
-  draw_polar_point: function(radians, radius) {
-    this.draw_point(radius * Math.cos(radians), radius * Math.sin(radians));
+  draw_polar_point: function(theta, radius) {
+    this.draw_point(radius * Math.cos(theta), radius * Math.sin(theta));
   },
 
   draw_point: function(x, y) {
@@ -158,13 +154,13 @@ TravelingPlotter.prototype = Object.create(Plotter.prototype);
 _.extend(TravelingPlotter.prototype, {
   constructor: TravelingPlotter,
 
-  draw: function(step, r) {
+  draw: function(theta, r) {
     this.reset();
 
     var self = this,
         args = arguments;
     _.each(this.patterns, function(pattern, i) {
-      self.set_traveling_origin(pattern.traveling_function, step, r);
+      self.set_traveling_origin(pattern.traveling_function, theta, r);
       self.set_point_color(settings.point_colors[i % settings.point_colors.length]);
 
       if (window.options.show_hand_trace) {
@@ -176,7 +172,7 @@ _.extend(TravelingPlotter.prototype, {
 
       // Draw
       self.constructor.prototype.__proto__.draw.apply(self, [
-        step * pattern.frequency, r
+        theta * pattern.frequency, r, pattern.phase_shift
       ]);
 
       // todo: maybe make sure origins are drawn on top since they're smaller?
@@ -194,8 +190,8 @@ _.extend(TravelingPlotter.prototype, {
     this.ctx.strokeStyle = settings.point.stroke_color;
     var circle_fn = pattern_generators.circle(pattern.frequency);
     this.trace_function(
-      function(step, r) {
-        return pattern.traveling_function(step, r).add(circle_fn(step, r));
+      function(theta, r) {
+        return pattern.traveling_function(theta, r).add(circle_fn(theta, r));
       }, r);
   },
 
@@ -205,16 +201,16 @@ _.extend(TravelingPlotter.prototype, {
     this.trace_function(pattern.traveling_function, r);
   },
 
-  trace_function: function(fn, r) {
-    // Persistent trace of a function(step, r)
+  trace_function: function(fn, r, phase_shift) {
+    // Persistent trace of a function(theta, r)
     this.ctx.beginPath();
     this.ctx.lineWidth = 1.5;
     
     // simulate a full period
     // one extra point for smoothness
-    for (var step = 0; step <= settings.STEPS; step++) {
-      var coords = fn(step, r);
-      if (step==0) {
+    for (var theta = 0; theta <= 2 * Math.PI; theta += settings.d_theta) {
+      var coords = fn(theta, r);
+      if (theta==0) {
         this.ctx.moveTo(this.initial_origin.x + coords.x,
                         this.initial_origin.y + coords.y);
       } else {
@@ -226,8 +222,8 @@ _.extend(TravelingPlotter.prototype, {
     this.ctx.closePath();
   },
 
-  set_traveling_origin: function(traveling_function, step, r) {
-    var travel = traveling_function(step, r),
+  set_traveling_origin: function(traveling_function, theta, r) {
+    var travel = traveling_function(theta, r),
         origin = [this.initial_origin.x + travel.x,
                   this.initial_origin.y + travel.y];
     this.set_origin.apply(this, origin);
@@ -237,27 +233,26 @@ _.extend(TravelingPlotter.prototype, {
 
 
 /* Traveling function signature:
- * :param step: step time out of settings.STEPS
+ * :param theta: angle in radians
  * :param d: poi length (handle center to head center)
  * :returns: 2D Vector
  */
 var traveling_functions = {
 
   // simple back and forth oscillation
-  test: function(step, d) {
-    return new Vector(step < settings.STEPS / 2 ? step : settings.STEPS - step, 0);
+  test: function(theta, d) {
+    return new Vector(theta < Math.PI ? theta : 2*Math.PI - theta, 0);
   },
 
   // Circle
-  extension: function(step, r) {
-    var radians = step_to_radians(step);
-    return new Vector(r * Math.cos(radians), r * Math.sin(radians));
+  extension: function(theta, r) {
+    return new Vector(r * Math.cos(theta), r * Math.sin(theta));
   },
 
   // Circle phase shifted by π
-  isolation: function(step, r) {
-    var radians = Math.PI + step_to_radians(step);
-    return new Vector(r * Math.cos(radians), r * Math.sin(radians));
+  isolation: function(theta, r) {
+    theta += Math.PI;
+    return new Vector(r * Math.cos(theta), r * Math.sin(theta));
   },
 
 };
@@ -267,25 +262,26 @@ var pattern_generators = {
 
   /* :param n: number of sides
    * :param rotation: angle to phase shift, in radians, from pointing up
+   * :param is_phase_shifted: flips an antispin to an inspin
    */
-  polygon: function(n, rotation) {
-    rotation = rotation || 0;  // TODO: actually use this
+  polygon: function(n, is_phase_shifted, rotation) {
+    var phase_shift = is_phase_shifted ? Math.PI/n : 0;
+    rotation = (rotation || 0) + Math.PI/n;  // this rotates it to point up
 
-    return function(step, d) {
-      var angle = step_to_radians(step),
-          // polar equation for edge: cos(π/n) / cos((theta mod 2π/n) - π/n)
-          r = (d * (
-            Math.cos(Math.PI/n) / Math.cos(angle % (2*Math.PI/n) - Math.PI/n)
-          ));
-      return new Vector(r * Math.cos(angle), r * Math.sin(angle));
+    return function(theta, d) {
+      theta += rotation;
+      // polar equation for edge: cos(π/n) / cos((theta mod 2π/n) - π/n)
+      var r = (d * (
+        Math.cos(Math.PI/n) / Math.cos((theta + phase_shift) % (2*Math.PI/n) - Math.PI/n)
+      ));
+      return new Vector(r * Math.cos(theta), r * Math.sin(theta));
     };
   },
-
   
   circle: function(frequency) {
-    return function(step, r) {
-      var angle = step_to_radians(step * frequency);
-      return new Vector(r * Math.cos(angle), r * Math.sin(angle));
+    return function(theta, r) {
+      theta *= frequency;
+      return new Vector(r * Math.cos(theta), r * Math.sin(theta));
     };
   },
 
@@ -310,9 +306,15 @@ var patterns = {
     traveling_function: pattern_generators.polygon(3),
   },
 
-  four_petal: {
+  four_petal_antispin: {
     frequency: -3,
+    phase_shift: -Math.PI/2,
     traveling_function: pattern_generators.polygon(4),
+  },
+
+  four_petal_inspin: {
+    frequency: -3,
+    traveling_function: pattern_generators.polygon(4, true),
   },
 
 };
@@ -322,14 +324,16 @@ var patterns = {
 $(function() {
   var canvas = $('#canvas').get(0);
   var ctx = canvas.getContext("2d");
-  var step = 0;
+  var theta= 0;
   var origin = new Vector(300, 300);
   var r = 125;
 
   var renderer = new TravelingPlotter(
     ctx, origin.x, origin.y, [
       patterns.extension,
-      patterns.four_petal,
+      patterns.triquetra,
+      //patterns.four_petal_inspin,
+      //patterns.four_petal_antispin,
     ]
   );
 
@@ -338,12 +342,12 @@ $(function() {
 
   // main loop
   setInterval(function() {
-    renderer.draw(step, r);
+    renderer.draw(theta, r);
     advanceTime();
   }, settings.REFRESH);
 
   function advanceTime() {
-    step++;
-    if (step > settings.STEPS) { step = 0; }
+    theta += settings.d_theta;
+    if (theta > 2*Math.PI) { theta = 0; }
   };
 });
