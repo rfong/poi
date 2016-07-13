@@ -22,11 +22,12 @@ var settings = {
     stroke_transparency: 0.2,
   },
 
-  point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
+  point_colors: ['#f00', '#5430e7', '#0f0'],  // lol hopefully we don't have more than 3 poi
 
   rave_mode: {
     background_color: '#000',
-    glow_spread: 2,
+    glow_spread: 3,
+    glow_blur: 50,
     stroke_transparency: 0.7,
   },
 };
@@ -133,13 +134,13 @@ _.extend(Plotter.prototype, {
     this.ctx.save();
 
     // blur spread doesn't work very well; let's draw a larger circle behind
-    this.ctx.shadowBlur = 50;
+    this.ctx.shadowBlur = settings.rave_mode.glow_blur;
     this.ctx.shadowOffsetX = 0;
     this.ctx.shadowOffsetY = 0;
     this.ctx.shadowColor = color;
     this.ctx.fillStyle = color;
     this.ctx.strokeStyle = color;
-    this.draw_dot(x, y, r+3, true);
+    this.draw_dot(x, y, r + settings.rave_mode.glow_spread, true);
 
     this.ctx.restore();
     this.ctx.fillStyle = '#fff';
