@@ -191,7 +191,8 @@ _.extend(TravelingPlotter.prototype, {
     var circle_fn = pattern_generators.circle(pattern.frequency);
     this.trace_function(
       function(theta, r) {
-        return pattern.traveling_function(theta, r).add(circle_fn(theta, r));
+        return pattern.traveling_function(theta, r).add(
+               circle_fn(theta, r));
       }, r);
   },
 
@@ -201,7 +202,7 @@ _.extend(TravelingPlotter.prototype, {
     this.trace_function(pattern.traveling_function, r);
   },
 
-  trace_function: function(fn, r, phase_shift) {
+  trace_function: function(fn, r) {
     // Persistent trace of a function(theta, r)
     this.ctx.beginPath();
     this.ctx.lineWidth = 1.5;
@@ -303,6 +304,7 @@ var patterns = {
 
   triquetra: {
     frequency: -2,
+    phase_shift: Math.PI/3,
     traveling_function: pattern_generators.polygon(3),
   },
 
