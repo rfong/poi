@@ -21,7 +21,6 @@ app.controller('PoiCtrl', function($scope, $http) {
   $scope.options = {};
 
   $scope.setOption = function(option) {
-    console.log("set", option, "=", $scope.options[option]);
     // These options are dynamically read by the plotter, so we don't need
     // to do anything else. I know, it's gross :x
     window.options[option] = $scope.options[option];

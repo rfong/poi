@@ -1,3 +1,6 @@
+// Plotter loosely based on https://gist.github.com/kazad/8bb682da198db597558c,
+// totally different implementation though
+
 var settings = {
   REFRESH: 25,   // refresh rate in ms
   STEPS: 180,    // # of intervals to divide wave into
@@ -18,6 +21,8 @@ var settings = {
     size: 10,
     stroke_color: '#fcc',
   },
+
+  point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
 };
 
 window.options = {};
@@ -74,7 +79,6 @@ _.extend(CanvasRenderer.prototype, {
 var Plotter = function(ctx, x, y) {
   this.set_origin(x, y);
   Plotter.prototype.__proto__.constructor.apply(this, [ctx]);
-  console.log(this.origin);
 };
 Plotter.prototype = Object.create(CanvasRenderer.prototype);
 _.extend(Plotter.prototype, {
@@ -93,6 +97,10 @@ _.extend(Plotter.prototype, {
     this.origin = {x: x, y: y};
   },
 
+  set_point_color: function(color) {
+    this.point_color = color;
+  },
+
   /* Convenience drawing methods */
 
   draw_polar_point: function(radians, radius) {
@@ -104,7 +112,7 @@ _.extend(Plotter.prototype, {
     this.ctx.lineWidth = 1.5;
     this.draw_line_to_origin(x, y);
     
-    this.ctx.fillStyle = settings.point.color;
+    this.ctx.fillStyle = this.point_color || settings.point.color;
     this.draw_dot(x, y, settings.point.size);
   },
 
@@ -155,8 +163,9 @@ _.extend(TravelingPlotter.prototype, {
 
     var self = this,
         args = arguments;
-    _.each(this.patterns, function(pattern) {
+    _.each(this.patterns, function(pattern, i) {
       self.set_traveling_origin(pattern.traveling_function, step, r);
+      self.set_point_color(settings.point_colors[i % settings.point_colors.length]);
 
       if (window.options.show_hand_trace) {
         self.trace_origin(pattern, r);
@@ -319,7 +328,6 @@ $(function() {
 
   var renderer = new TravelingPlotter(
     ctx, origin.x, origin.y, [
-      //patterns.triquetra,
       patterns.extension,
       patterns.four_petal,
     ]
