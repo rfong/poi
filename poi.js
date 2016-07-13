@@ -25,7 +25,7 @@ var settings = {
   point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
 };
 
-settings.d_theta = 2 * Math.PI / settings.STEPS;
+settings.get_d_theta = function() { return 2 * Math.PI / settings.STEPS };
 
 window.options = {};
 
@@ -208,7 +208,7 @@ _.extend(TravelingPlotter.prototype, {
     
     // simulate a full period
     // one extra point for smoothness
-    for (var theta = 0; theta <= 2 * Math.PI; theta += settings.d_theta) {
+    for (var theta = 0; theta <= 2 * Math.PI; theta += settings.get_d_theta()) {
       var coords = fn(theta, r);
       if (theta==0) {
         this.ctx.moveTo(this.initial_origin.x + coords.x,

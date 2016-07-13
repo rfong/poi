@@ -52,7 +52,7 @@ app.controller('PoiCtrl', function($scope, $http) {
     }, settings.REFRESH);
 
     function advanceTime() {
-      theta += settings.d_theta;
+      theta += settings.get_d_theta();
       if (theta > 2*Math.PI) { theta = 0; }
     };
   }; $scope.initialize();
