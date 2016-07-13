@@ -10,12 +10,20 @@ var settings = {
     width: 0,
     height: 0,
   },
+
+  origin: {
+    color: '#ffa500',
+    size: 3.5,
+  },
+
+  point: {
+    color: '#f00',
+    size: 6,
+  },
 };
 
 
 // Hooray, pseudo-OOP JS
-// Ugh figure out how to make it less janky to reference the prototype from
-// within prototypal methods
 
 
 /* Canvas graphics primitives */
@@ -55,6 +63,11 @@ _.extend(CanvasRenderer.prototype, {
 });
 
 
+function step_to_radians(step) {
+  return 2 * Math.PI * step / settings.STEPS;
+};
+
+
 /* Plotter with relative origin */
 
 var Plotter = function(ctx, x, y) {
@@ -67,18 +80,16 @@ _.extend(Plotter.prototype, {
   constructor: Plotter,
 
   draw: function(step, r) {
-    this.reset();
+    this.draw_polar_point(step_to_radians(step), r);
+  },
 
-    var angle = this.step_to_radians(step);
-    this.draw_polar_point(angle, r);
+  refresh: function(step, r) {
+    this.reset();
+    this.draw(step, r);
   },
 
   set_origin: function(x, y) {
     this.origin = {x: x, y: y};
-  },
-
-  step_to_radians: function(step) {
-    return 2 * Math.PI * step / settings.STEPS;
   },
 
   /* Convenience drawing methods */
@@ -92,8 +103,8 @@ _.extend(Plotter.prototype, {
     this.ctx.lineWidth = 1.5;
     this.draw_line_to_origin(x, y);
     
-    this.ctx.fillStyle = 'Orange';
-    this.draw_dot(x, y, 3.5);    
+    this.ctx.fillStyle = settings.point.color;
+    this.draw_dot(x, y, settings.point.size);
   },
 
   draw_line_to_origin: function(x, y) {
@@ -124,24 +135,101 @@ _.extend(Plotter.prototype, {
 });
 
 
-/* Polar plotter whose origin moves according to a periodic function.
- *  Normalized to unit period.
+/* Polar plotter whose origin travels according to a periodic function.
+ *  Traveling function returns an array [x, y] which offsets from
+ *  initial origin.
  */
 
-var TravelingPlotter = function(ctx, x, y, traveling_function) {
-  this.traveling_function = traveling_function;
+var TravelingPlotter = function(ctx, x, y, traveling_functions) {
+  this.traveling_functions = traveling_functions;
+  this.initial_origin = {x: x, y: y};
   TravelingPlotter.prototype.__proto__.constructor.apply(this, [ctx, x, y]);
-  console.log(this);
 };
 TravelingPlotter.prototype = Object.create(Plotter.prototype);
 _.extend(TravelingPlotter.prototype, {
   constructor: TravelingPlotter,
 
   draw: function(step, r) {
-    this.constructor.prototype.__proto__.draw.apply(this, arguments);
+    this.reset();
+
+    var self = this,
+        args = arguments;
+    _.each(this.traveling_functions, function(fn) {
+      self.set_traveling_origin(fn, step, r);
+      self.constructor.prototype.__proto__.draw.apply(self, args);
+    });
+
+    // draw the origins last since they're smaller and we want them to be on top?
+    _.each(this.traveling_functions, function(fn) {
+      self.set_traveling_origin(fn, step, r);
+      self.draw_origin();
+    });
+  },
+
+  draw_origin: function() {
+    this.ctx.fillStyle = settings.origin.color;
+    this.draw_dot(0, 0, settings.origin.size);
+  },
+
+  set_traveling_origin: function(traveling_function, step, r) {
+    var travel = traveling_function(step, r),
+        origin = [this.initial_origin.x + travel[0],
+                  this.initial_origin.y + travel[1]];
+    this.set_origin.apply(this, origin);
   },
 
 });
+
+
+/* Traveling pattern function signature:
+ * :param step: step time out of settings.STEPS
+ * :param d: poi length (handle center to head center)
+ * :returns: [x, y]
+ */
+var patterns = {
+
+  // simple back and forth oscillation
+  test: function(step, d) {
+    return [step < settings.STEPS / 2 ? step : settings.STEPS - step, 0];
+  },
+
+  // Circle of radius d/2
+  extension: function(step, d) {
+    var radians = step_to_radians(step);
+    return [d/2 * Math.cos(radians), d/2 * Math.sin(radians)];
+  },
+
+  // Circle of radius d/2, phase shifted by π
+  isolation: function(step, d) {
+    var radians = Math.PI + step_to_radians(step);
+    return [d/2 * Math.cos(radians), d/2 * Math.sin(radians)];
+  },
+
+};
+
+
+// Parametric generators that return patterns fitting the format above.
+var pattern_generators = {
+
+  /* :param n: number of sides
+   * :param rotation: angle to phase shift, in radians
+   */
+  polygon: function(n, rotation) {
+    return function(step, d) {
+      var angle = step_to_radians(step),
+          r = d/2 * (Math.cos(Math.PI/n) / Math.cos(n * angle) % (1/n - Math.PI/n));
+      return [r * Math.cos(angle), r * Math.sin(angle)];
+    };
+  },
+
+/*n=5;
+theta=(0:999)/1000;
+r=cos(pi/n)/cos(2*pi*(n*theta)%%1/n-pi/n);
+plot(r*cos(2*pi*theta),r*sin(2*pi*theta),asp=1,xlab="X",ylab="Y",
+main=paste("Regular ",n,"-gon",sep=""));
+*/
+
+};
 
 
 // main
@@ -149,7 +237,9 @@ $(function() {
   var canvas = $('#canvas').get(0);
   var ctx = canvas.getContext("2d");
   var step = 0;
-  var renderer = new TravelingPlotter(ctx, settings.CIRCLE_X, settings.CIRCLE_Y);
+  var renderer = new TravelingPlotter(
+    ctx, settings.CIRCLE_X, settings.CIRCLE_Y, [patterns.isolation, patterns.extension]
+  );
 
   settings.canvas.width = canvas.width;
   settings.canvas.height = canvas.height;
