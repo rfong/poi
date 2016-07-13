@@ -220,6 +220,8 @@ _.extend(TravelingPlotter.prototype, {
     this.draw_dot(0, 0, settings.origin.size);
   },
 
+  // TODO: cache this since it only changes when the patterns do
+  // TODO: light trails that decompose
   trace_pattern: function(pattern, r, color) {
     // Persistent trace of a pattern
     this.ctx.strokeStyle = color || settings.point.stroke_color;
