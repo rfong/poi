@@ -1,13 +1,34 @@
 var app = angular.module('PoiApp', []);
 
+
 app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.options = {};
+  $scope.patternNames = ['---'].concat(_.keys(patterns));
+  $scope.selectedPatternNames = ['extension', 'four_petal_antispin'];
+  $scope.getSelectedPatterns = function() {
+    return _.map(
+      _.filter($scope.selectedPatternNames, function(p) {
+        return p in patterns;
+      }),
+      function(p) { return patterns[p]; });
+  };
 
   $scope.setOption = function(option) {
     // These options are dynamically read by the plotter, so we don't need
     // to do anything else. I know, it's gross :x
     window.options[option] = $scope.options[option];
+  };
+
+  $scope.updatePatterns = function() {
+    $scope.renderer.set_patterns($scope.getSelectedPatterns());
+  };
+
+  $scope.getPatterns = function(patternNames) {
+    return _.map(patternNames, function(p) {
+      if (p in patterns)
+        return patterns[p];
+    });
   };
 
   $scope.initialize = function() {
@@ -16,7 +37,7 @@ app.controller('PoiCtrl', function($scope, $http) {
         theta = 0,
         origin = new Vector(300, 300),
         r = 125,
-        initial_patterns = [patterns.extension, patterns.four_petal_antispin];
+        initial_patterns = $scope.getSelectedPatterns();
 
     $scope.renderer = new TravelingPlotter(
       ctx, origin.x, origin.y, initial_patterns);
@@ -36,6 +57,7 @@ app.controller('PoiCtrl', function($scope, $http) {
     };
   }; $scope.initialize();
 });
+
 
 // Checkbox control directive
 app.directive('controlCheckbox', function() {

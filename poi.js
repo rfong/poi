@@ -337,6 +337,5 @@ function Pattern(options) {
 
 // map specs to this struct
 patterns = _.chain(patterns).map(function(pattern, name) {
-  console.log(name, pattern)
   return [name, new Pattern(pattern)];
 }).object().value();

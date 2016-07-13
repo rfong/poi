@@ -2,8 +2,12 @@ body, input[type=text] {
   font-family: monospace; }
 
 .controls {
-  width: 600px; }
+  width: 600px;
+  line-height: 2em; }
   .controls .control {
     margin-right: 2em; }
+
+.footer {
+  margin-top: 2em; }
 
 /*# sourceMappingURL=index.css.map */
