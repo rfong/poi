@@ -7,10 +7,11 @@ hella work in progress
 
 todos
 -----
++ ~~selectable patterns~~
 + split/together/same time selector
 + rotate the graph to make theta=0 point up
 + more patterns. [ideas](https://github.com/infiniteperplexity/visual-spinner-3d/tree/master/json)
-+ refactor so the speed is changeable
++ ~~refactor so the speed is changeable~~
 + change poi to arm ratio
 
 pipe dreams / ideas
