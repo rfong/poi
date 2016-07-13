@@ -11,6 +11,7 @@ todos
 + rotate the graph to make theta=0 point up
 + more patterns
 + refactor so the speed is changeable
++ change poi to arm ratio
 
 pipe dreams / ideas
 -----

@@ -51,6 +51,7 @@ app.controller('PoiCtrl', function($scope, $http) {
         origin = new Vector(300, 300),
         initial_patterns = $scope.getSelectedPatterns();
     $scope.r = 125;
+    // TODO: poi to arm ratio
     $scope.theta = 0;
 
     $scope.renderer = new TravelingPlotter(
