@@ -1,6 +1,12 @@
 body, input[type=text] {
   font-family: monospace; }
 
+body.rave {
+  background: #000;
+  color: #fff; }
+  body.rave a, body.rave a:active, body.rave a:visited, body.rave a:hover {
+    color: #fff; }
+
 .controls {
   width: 600px;
   line-height: 2em; }

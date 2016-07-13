@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="index.css" />
 
 </head>
-<body>
+<body ng-class="{'rave': options.rave_mode}">
 
   <div>
 
@@ -54,6 +54,11 @@
             name="show_hand_trace"
             label="Show hand traces"
             value="true"
+            ></span>
+      <span control-checkbox
+            name="rave_mode"
+            label="Rave mode"
+            value="false"
             ></span>
       <br/>
       <span class="control">

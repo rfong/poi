@@ -11,18 +11,24 @@ var settings = {
 
   origin: {
     color: '#ffa500',
-    size: 5,
+    size: 6,
     stroke_transparency: 0.5,
   },
 
   point: {
     color: '#f00',
-    size: 10,
+    size: 12,
     stroke_color: '#fcc',
     stroke_transparency: 0.2,
   },
 
   point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
+
+  rave_mode: {
+    background_color: '#000',
+    glow_spread: 2,
+    stroke_transparency: 0.7,
+  },
 };
 
 window.options = {
@@ -42,7 +48,12 @@ var CanvasRenderer = function(ctx) {
 _.extend(CanvasRenderer.prototype, {
 
   reset: function() {
-    this.ctx.clearRect(0, 0, settings.canvas.width, settings.canvas.height);
+    if (options.rave_mode) {
+      this.ctx.fillStyle = settings.rave_mode.background_color;
+      this.ctx.fillRect(0, 0, settings.canvas.width, settings.canvas.height);
+    } else {
+      this.ctx.clearRect(0, 0, settings.canvas.width, settings.canvas.height);
+    }
   },
 
   draw_circ: function(x, y, r) {
@@ -52,11 +63,12 @@ _.extend(CanvasRenderer.prototype, {
     this.ctx.closePath();
   },
 
-  draw_dot: function(x, y, r) {
+  draw_dot: function(x, y, r, stroke) {
     r = r || 3.5;
     this.ctx.beginPath();
     this.ctx.arc(x, y, r, 0, Math.PI * 2, true);
     this.ctx.fill();
+    if (stroke) { this.ctx.stroke(); }
     this.ctx.closePath();
   },
 
@@ -108,9 +120,30 @@ _.extend(Plotter.prototype, {
     this.ctx.strokeStyle = '#ccc';
     this.ctx.lineWidth = 1.5;
     this.draw_line_to_origin(x, y);
-    
+   
     this.ctx.fillStyle = this.point_color || settings.point.color;
-    this.draw_dot(x, y, settings.point.size);
+    if (options.rave_mode) {
+      this.draw_glowing_dot(x, y, settings.point.size, this.ctx.fillStyle);
+    } else {
+      this.draw_dot(x, y, settings.point.size);
+    }
+  },
+
+  draw_glowing_dot: function(x, y, r, color) {
+    this.ctx.save();
+
+    // blur spread doesn't work very well; let's draw a larger circle behind
+    this.ctx.shadowBlur = 50;
+    this.ctx.shadowOffsetX = 0;
+    this.ctx.shadowOffsetY = 0;
+    this.ctx.shadowColor = color;
+    this.ctx.fillStyle = color;
+    this.ctx.strokeStyle = color;
+    this.draw_dot(x, y, r+3, true);
+
+    this.ctx.restore();
+    this.ctx.fillStyle = '#fff';
+    this.draw_dot(x, y, r);
   },
 
   draw_line_to_origin: function(x, y) {
@@ -125,9 +158,9 @@ _.extend(Plotter.prototype, {
     ]);
   },
 
-  draw_dot: function(x, y, r) {
+  draw_dot: function(x, y, r, stroke) {
     Plotter.prototype.__proto__.draw_dot.apply(this, [
-      x + this.origin.x, y + this.origin.y, r,
+      x + this.origin.x, y + this.origin.y, r, stroke
     ]);
   },
 
@@ -190,7 +223,10 @@ _.extend(TravelingPlotter.prototype, {
   trace_pattern: function(pattern, r, color) {
     // Persistent trace of a pattern
     this.ctx.strokeStyle = color || settings.point.stroke_color;
-    this.ctx.globalAlpha = settings.point.stroke_transparency;
+    this.ctx.globalAlpha = (!options.rave_mode
+                            ? settings.point.stroke_transparency
+                            : settings.rave_mode.stroke_transparency
+                           );
 
     var circle_fn = pattern_generators.circle();
     this.trace_function(
