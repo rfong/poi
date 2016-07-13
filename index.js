@@ -10,13 +10,17 @@ var settings = {
   origin: {
     color: '#ffa500',
     size: 5,
+    stroke_color: '#c2a7dd',
   },
 
   point: {
     color: '#f00',
     size: 10,
+    stroke_color: '#fcc',
   },
 };
+
+window.options = {};
 
 
 /* math convenience functions */
@@ -154,8 +158,12 @@ _.extend(TravelingPlotter.prototype, {
     _.each(this.patterns, function(pattern) {
       self.set_traveling_origin(pattern.traveling_function, step, r);
 
-      self.trace_origin(pattern, r);
-      self.trace_pattern(pattern, r);
+      if (window.options.show_hand_trace) {
+        self.trace_origin(pattern, r);
+      }
+      if (window.options.show_pattern_trace) {
+        self.trace_pattern(pattern, r);
+      }
 
       // Draw
       self.constructor.prototype.__proto__.draw.apply(self, [
@@ -174,7 +182,7 @@ _.extend(TravelingPlotter.prototype, {
 
   trace_pattern: function(pattern, r) {
     // Persistent trace of a pattern
-    this.ctx.strokeStyle = '#faa';
+    this.ctx.strokeStyle = settings.point.stroke_color;
     var circle_fn = pattern_generators.circle(pattern.frequency);
     this.trace_function(
       function(step, r) {
@@ -184,7 +192,7 @@ _.extend(TravelingPlotter.prototype, {
 
   trace_origin: function(pattern, r) {
     // Persistent trace of the origin's movement
-    this.ctx.strokeStyle = '#c2a7dd';
+    this.ctx.strokeStyle = settings.origin.stroke_color;
     this.trace_function(pattern.traveling_function, r);
   },
 
@@ -284,7 +292,7 @@ var patterns = {
   },
 
   triquetra: {
-    frequency: -3,
+    frequency: -2,
     traveling_function: pattern_generators.polygon(3),
   },
 
@@ -301,7 +309,7 @@ $(function() {
 
   var renderer = new TravelingPlotter(
     ctx, origin.x, origin.y, [
-      patterns.test,
+      patterns.triquetra,
       //patterns.isolation, pattern_generators.polygon(3)
     ]
   );

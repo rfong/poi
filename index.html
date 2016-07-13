@@ -1,8 +1,10 @@
-<html>
+<html ng-app="PoiApp"
+      ng-controller="PoiCtrl">
 <head>
 
   <script src="lib/underscore.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.4/angular.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
   <script src="//ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 
@@ -10,6 +12,41 @@
   <script src="lib/vector.js"></script>
 
   <script type="text/javascript" src="index.js"></script>
+
+  <script type="text/javascript">
+var app = angular.module('PoiApp', []);
+
+app.controller('PoiCtrl', function($scope, $http) {
+
+  $scope.options = {};
+
+  $scope.setOption = function(option) {
+    console.log("set", option, "=", $scope.options[option]);
+    // These options are dynamically read by the plotter, so we don't need
+    // to do anything else. I know, it's gross :x
+    window.options[option] = $scope.options[option];
+  };
+
+});
+
+// Checkbox control directive
+app.directive('controlCheckbox', function() {
+  return {
+    restrict: 'A',
+    template: function(element, attributes) {
+      return '' +
+      '<span class="control">' + attributes.label +
+      '  <input type="checkbox" ' +
+      '         ng-model="options.' + attributes.name + '" ' +
+      '         ng-init="options.' + attributes.name + '= ' + attributes.value + '; ' +
+      '                  setOption(\'' + attributes.name + '\')" ' +
+      '         ng-change="setOption(\'' + attributes.name + '\')" ' +
+      '         />' +
+      '</span>';
+    },
+  };
+});
+  </script>
 
   <link rel="stylesheet" href="index.css" />
 
@@ -19,15 +56,19 @@
   <div>
   
     <div class="controls">
-      <span class="control">
-        Show pattern traces <input name="show_pattern_trace" type="checkbox" checked />
-      </span>
-      <span class="control">
-        Show hand traces <input name="show_hand_trace" type="checkbox" checked />
-      </span>
+      <span control-checkbox
+            name="show_pattern_trace"
+            label="Show pattern traces"
+            value="true"
+            ></span>
+      <span control-checkbox
+            name="show_hand_trace"
+            label="Show hand traces"
+            value="true"
+            ></span>
     </div>
   
-    <canvas id="canvas" width="600px" height="600px" style="">
+    <canvas id="canvas" width="650px" height="600px" style="">
       This browser doesn't support canvas! Try <a href="http://google.com/chrome">Google Chrome</a>.
     </canvas>
   
