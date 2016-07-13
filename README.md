@@ -5,7 +5,13 @@ yay a 2d poi pattern grapher!
 
 hella work in progress
 
-ideas / todos
+todos
+-----
++ split/together/same time selector
++ rotate the graph to make theta=0 point up
++ more patterns
+
+pipe dreams / ideas
 -----
 + slight hand offsets and positioning relative to body? I want this to make it easier for noobs like me to figure out how their hands should interact with each other especially when crossing over
 + allow arbitrary pattern phase shifts (I'm writing the pattern generators pretty modularly so this should follow naturally)
