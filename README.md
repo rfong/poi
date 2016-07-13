@@ -12,3 +12,4 @@ ideas / todos
 + refactor to make specifications for stalls and other directional changes easy, probably some kind of chaining mechanism that auto-normalizes itself to overall period.
 + implement "your arms can't do that" detector (involves reverse engineering sneaky ways in which people fold poi around their bodies)
 + beat detection and counter
++ RIP OUT ALL THE PARAMETRIC SPECIFICATIONS AND REPLACE THEM WITH FORCE DIAGRAMS AND GRAVITY
