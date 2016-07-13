@@ -12,13 +12,14 @@ var settings = {
   origin: {
     color: '#ffa500',
     size: 5,
-    stroke_color: '#c2a7dd',
+    stroke_transparency: 0.5,
   },
 
   point: {
     color: '#f00',
     size: 10,
     stroke_color: '#fcc',
+    stroke_transparency: 0.2,
   },
 
   point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
@@ -160,14 +161,15 @@ _.extend(TravelingPlotter.prototype, {
     var self = this,
         args = arguments;
     _.each(this.patterns, function(pattern, i) {
+      var color = settings.point_colors[i % settings.point_colors.length];
       self.set_traveling_origin(pattern.traveling_function, theta, r);
-      self.set_point_color(settings.point_colors[i % settings.point_colors.length]);
+      self.set_point_color(color);
 
       if (window.options.show_hand_trace) {
         self.trace_origin(pattern, r);
       }
       if (window.options.show_pattern_trace) {
-        self.trace_pattern(pattern, r);
+        self.trace_pattern(pattern, r, color);
       }
 
       // Draw
@@ -185,21 +187,29 @@ _.extend(TravelingPlotter.prototype, {
     this.draw_dot(0, 0, settings.origin.size);
   },
 
-  trace_pattern: function(pattern, r) {
+  trace_pattern: function(pattern, r, color) {
     // Persistent trace of a pattern
-    this.ctx.strokeStyle = settings.point.stroke_color;
+    this.ctx.strokeStyle = color || settings.point.stroke_color;
+    this.ctx.globalAlpha = settings.point.stroke_transparency;
+
     var circle_fn = pattern_generators.circle();
     this.trace_function(
       function(theta, r) {
         return pattern.traveling_function(theta, r).add(
                circle_fn(pattern.shift_theta(theta), r));
       }, r);
+
+    this.ctx.globalAlpha = 1;
   },
 
-  trace_origin: function(pattern, r) {
+  trace_origin: function(pattern, r, color) {
     // Persistent trace of the origin's movement
-    this.ctx.strokeStyle = settings.origin.stroke_color;
+    this.ctx.strokeStyle = color || settings.origin.color;
+    this.ctx.globalAlpha = settings.origin.stroke_transparency;
+
     this.trace_function(pattern.traveling_function, r);
+
+    this.ctx.globalAlpha = 1;
   },
 
   trace_function: function(fn, r) {
