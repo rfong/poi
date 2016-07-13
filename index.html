@@ -1,28 +1,37 @@
 <html>
 <head>
-<script src="lib/underscore.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
-<script src="//ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 
-<script src="lib/backbone.js"></script>
-<script src="lib/vector.js"></script>
+  <script src="lib/underscore.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+  <script src="//ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 
-<script type="text/javascript" src="index.js"></script>
+  <script src="lib/backbone.js"></script>
+  <script src="lib/vector.js"></script>
+
+  <script type="text/javascript" src="index.js"></script>
+
+  <link rel="stylesheet" href="index.css" />
 
 </head>
 <body>
 
-<div>
-
-  <div class="controls">
+  <div>
+  
+    <div class="controls">
+      <span class="control">
+        Show pattern traces <input name="show_pattern_trace" type="checkbox" checked />
+      </span>
+      <span class="control">
+        Show hand traces <input name="show_hand_trace" type="checkbox" checked />
+      </span>
+    </div>
+  
+    <canvas id="canvas" width="600px" height="600px" style="">
+      This browser doesn't support canvas! Try <a href="http://google.com/chrome">Google Chrome</a>.
+    </canvas>
+  
   </div>
-
-  <canvas id="canvas" width="600px" height="600px" style="">
-    This browser doesn't support canvas! Try <a href="http://google.com/chrome">Google Chrome</a>.
-  </canvas>
-
-</div>
 
 </body>
 </html>

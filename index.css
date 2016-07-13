@@ -1,0 +1,9 @@
+body, input[type=text] {
+  font-family: monospace; }
+
+.controls {
+  width: 600px; }
+  .controls .control {
+    margin-right: 2em; }
+
+/*# sourceMappingURL=index.css.map */
