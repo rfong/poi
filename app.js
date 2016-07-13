@@ -14,10 +14,17 @@ app.controller('PoiCtrl', function($scope, $http) {
       function(p) { return patterns[p]; });
   };
 
-  $scope.setOption = function(option) {
+  $scope.setOption = function(option, value) {
     // These options are dynamically read by the plotter, so we don't need
     // to do anything else. I know, it's gross :x
-    window.options[option] = $scope.options[option];
+    window.options[option] = (value===undefined) ? $scope.options[option] : value;
+  };
+
+  $scope.setSpeed = function(speed) {
+    var multiplier = Math.pow(1.5, -speed);
+    settings.REFRESH = 25 * multiplier;
+    clearInterval($scope.loop);
+    $scope.runMainLoop();
   };
 
   $scope.updatePatterns = function() {
@@ -31,13 +38,20 @@ app.controller('PoiCtrl', function($scope, $http) {
     });
   };
 
+  $scope.runMainLoop = function() {
+    $scope.loop = setInterval(function() {
+      $scope.renderer.draw($scope.theta, $scope.r);
+      $scope.advanceTime();
+    }, settings.REFRESH);
+  };
+
   $scope.initialize = function() {
     var canvas = $('#canvas').get(0),
         ctx = canvas.getContext("2d"),
-        theta = 0,
         origin = new Vector(300, 300),
-        r = 125,
         initial_patterns = $scope.getSelectedPatterns();
+    $scope.r = 125;
+    $scope.theta = 0;
 
     $scope.renderer = new TravelingPlotter(
       ctx, origin.x, origin.y, initial_patterns);
@@ -45,15 +59,11 @@ app.controller('PoiCtrl', function($scope, $http) {
     settings.canvas.width = canvas.width;
     settings.canvas.height = canvas.height;
 
-    // main loop
-    setInterval(function() {
-      $scope.renderer.draw(theta, r);
-      advanceTime();
-    }, settings.REFRESH);
+    $scope.runMainLoop();
 
-    function advanceTime() {
-      theta += settings.get_d_theta();
-      if (theta > 2*Math.PI) { theta = 0; }
+    $scope.advanceTime = function() {
+      $scope.theta += get_d_theta();
+      if ($scope.theta > 2*Math.PI) { $scope.theta = 0; }
     };
   }; $scope.initialize();
 });

@@ -3,7 +3,6 @@
 
 var settings = {
   REFRESH: 25,   // refresh rate in ms
-  STEPS: 180,    // # of intervals to divide wave into
 
   canvas: {
     width: 0,
@@ -25,9 +24,11 @@ var settings = {
   point_colors: ['#f00', '#00f', '#0f0'],  // lol hopefully we don't have more than 3 poi
 };
 
-settings.get_d_theta = function() { return 2 * Math.PI / settings.STEPS };
+window.options = {
+  STEPS: 180,    // # of intervals to divide wave into
+};
 
-window.options = {};
+function get_d_theta() { return 2 * Math.PI / window.options.STEPS };
 
 
 // Hooray, pseudo-OOP JS
@@ -208,7 +209,7 @@ _.extend(TravelingPlotter.prototype, {
     
     // simulate a full period
     // one extra point for smoothness
-    for (var theta = 0; theta <= 2 * Math.PI; theta += settings.get_d_theta()) {
+    for (var theta = 0; theta <= 2 * Math.PI; theta += get_d_theta()) {
       var coords = fn(theta, r);
       if (theta==0) {
         this.ctx.moveTo(this.initial_origin.x + coords.x,

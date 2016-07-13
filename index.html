@@ -44,9 +44,7 @@
                 ng-change="updatePatterns()"
                 ></select>
       </span>
-    </div>
-
-    <div class="controls">
+      <br/>
       <span control-checkbox
             name="show_pattern_trace"
             label="Show pattern traces"
@@ -57,6 +55,15 @@
             label="Show hand traces"
             value="true"
             ></span>
+      <br/>
+      <span class="control">
+        Speed
+        <input type="range"
+               min=-2 max=2 step=1
+               ng-model="speed" ng-init="speed=0"
+               ng-change="setSpeed(speed)"
+               />
+      </span>
     </div>
   
     <canvas id="canvas" width="650px" height="600px" style="">
