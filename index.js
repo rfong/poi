@@ -239,16 +239,16 @@ var traveling_functions = {
     return new Vector(step < settings.STEPS / 2 ? step : settings.STEPS - step, 0);
   },
 
-  // Circle of radius d/2
-  extension: function(step, d) {
+  // Circle
+  extension: function(step, r) {
     var radians = step_to_radians(step);
-    return new Vector(d/2 * Math.cos(radians), d/2 * Math.sin(radians));
+    return new Vector(r * Math.cos(radians), r * Math.sin(radians));
   },
 
-  // Circle of radius d/2, phase shifted by π
-  isolation: function(step, d) {
+  // Circle phase shifted by π
+  isolation: function(step, r) {
     var radians = Math.PI + step_to_radians(step);
-    return new Vector(d/2 * Math.cos(radians), d/2 * Math.sin(radians));
+    return new Vector(r * Math.cos(radians), r * Math.sin(radians));
   },
 
 };
@@ -291,9 +291,19 @@ var patterns = {
     traveling_function: traveling_functions.isolation,
   },
 
+  extension: {
+    frequency: 1,
+    traveling_function: traveling_functions.extension,
+  },
+
   triquetra: {
     frequency: -2,
     traveling_function: pattern_generators.polygon(3),
+  },
+
+  four_petal: {
+    frequency: -3,
+    traveling_function: pattern_generators.polygon(4),
   },
 
 };
@@ -305,12 +315,13 @@ $(function() {
   var ctx = canvas.getContext("2d");
   var step = 0;
   var origin = new Vector(300, 300);
-  var r = 150;
+  var r = 125;
 
   var renderer = new TravelingPlotter(
     ctx, origin.x, origin.y, [
-      patterns.triquetra,
-      //patterns.isolation, pattern_generators.polygon(3)
+      //patterns.triquetra,
+      patterns.extension,
+      patterns.four_petal,
     ]
   );
 
