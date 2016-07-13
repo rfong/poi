@@ -1,10 +1,6 @@
 var settings = {
-  REFRESH: 50,  // refresh rate in ms
-  STEPS: 60,    // # of intervals to divide wave into
-
-  CIRCLE_R: 60,
-  CIRCLE_X: 80,
-  CIRCLE_Y: 100,
+  REFRESH: 25,   // refresh rate in ms
+  STEPS: 180,    // # of intervals to divide wave into
 
   canvas: {
     width: 0,
@@ -13,18 +9,24 @@ var settings = {
 
   origin: {
     color: '#ffa500',
-    size: 3.5,
+    size: 5,
   },
 
   point: {
     color: '#f00',
-    size: 6,
+    size: 10,
   },
 };
 
 
-// Hooray, pseudo-OOP JS
+/* math convenience functions */
 
+function step_to_radians(step) {
+  return 2 * Math.PI * step / settings.STEPS;
+};
+
+
+// Hooray, pseudo-OOP JS
 
 /* Canvas graphics primitives */
 
@@ -61,11 +63,6 @@ _.extend(CanvasRenderer.prototype, {
   },
 
 });
-
-
-function step_to_radians(step) {
-  return 2 * Math.PI * step / settings.STEPS;
-};
 
 
 /* Plotter with relative origin */
@@ -136,12 +133,12 @@ _.extend(Plotter.prototype, {
 
 
 /* Polar plotter whose origin travels according to a periodic function.
- *  Traveling function returns an array [x, y] which offsets from
+ *  Traveling function returns a 2D Vector which offsets from
  *  initial origin.
  */
 
-var TravelingPlotter = function(ctx, x, y, traveling_functions) {
-  this.traveling_functions = traveling_functions;
+var TravelingPlotter = function(ctx, x, y, patterns) {
+  this.patterns = patterns;
   this.initial_origin = {x: x, y: y};
   TravelingPlotter.prototype.__proto__.constructor.apply(this, [ctx, x, y]);
 };
@@ -154,14 +151,18 @@ _.extend(TravelingPlotter.prototype, {
 
     var self = this,
         args = arguments;
-    _.each(this.traveling_functions, function(fn) {
-      self.set_traveling_origin(fn, step, r);
-      self.constructor.prototype.__proto__.draw.apply(self, args);
-    });
+    _.each(this.patterns, function(pattern) {
+      self.set_traveling_origin(pattern.traveling_function, step, r);
 
-    // draw the origins last since they're smaller and we want them to be on top?
-    _.each(this.traveling_functions, function(fn) {
-      self.set_traveling_origin(fn, step, r);
+      self.trace_origin(pattern, r);
+      self.trace_pattern(pattern, r);
+
+      // Draw
+      self.constructor.prototype.__proto__.draw.apply(self, [
+        step * pattern.frequency, r
+      ]);
+
+      // todo: maybe make sure origins are drawn on top since they're smaller?
       self.draw_origin();
     });
   },
@@ -171,63 +172,121 @@ _.extend(TravelingPlotter.prototype, {
     this.draw_dot(0, 0, settings.origin.size);
   },
 
+  trace_pattern: function(pattern, r) {
+    // Persistent trace of a pattern
+    this.ctx.strokeStyle = '#faa';
+    var circle_fn = pattern_generators.circle(pattern.frequency);
+    this.trace_function(
+      function(step, r) {
+        return pattern.traveling_function(step, r).add(circle_fn(step, r));
+      }, r);
+  },
+
+  trace_origin: function(pattern, r) {
+    // Persistent trace of the origin's movement
+    this.ctx.strokeStyle = '#c2a7dd';
+    this.trace_function(pattern.traveling_function, r);
+  },
+
+  trace_function: function(fn, r) {
+    // Persistent trace of a function(step, r)
+    this.ctx.beginPath();
+    this.ctx.lineWidth = 1.5;
+    
+    // simulate a full period
+    // one extra point for smoothness
+    for (var step = 0; step <= settings.STEPS; step++) {
+      var coords = fn(step, r);
+      if (step==0) {
+        this.ctx.moveTo(this.initial_origin.x + coords.x,
+                        this.initial_origin.y + coords.y);
+      } else {
+        this.ctx.lineTo(this.initial_origin.x + coords.x,
+                        this.initial_origin.y + coords.y);
+      }
+    }
+    this.ctx.stroke();
+    this.ctx.closePath();
+  },
+
   set_traveling_origin: function(traveling_function, step, r) {
     var travel = traveling_function(step, r),
-        origin = [this.initial_origin.x + travel[0],
-                  this.initial_origin.y + travel[1]];
+        origin = [this.initial_origin.x + travel.x,
+                  this.initial_origin.y + travel.y];
     this.set_origin.apply(this, origin);
   },
 
 });
 
 
-/* Traveling pattern function signature:
+/* Traveling function signature:
  * :param step: step time out of settings.STEPS
  * :param d: poi length (handle center to head center)
- * :returns: [x, y]
+ * :returns: 2D Vector
  */
-var patterns = {
+var traveling_functions = {
 
   // simple back and forth oscillation
   test: function(step, d) {
-    return [step < settings.STEPS / 2 ? step : settings.STEPS - step, 0];
+    return new Vector(step < settings.STEPS / 2 ? step : settings.STEPS - step, 0);
   },
 
   // Circle of radius d/2
   extension: function(step, d) {
     var radians = step_to_radians(step);
-    return [d/2 * Math.cos(radians), d/2 * Math.sin(radians)];
+    return new Vector(d/2 * Math.cos(radians), d/2 * Math.sin(radians));
   },
 
   // Circle of radius d/2, phase shifted by π
   isolation: function(step, d) {
     var radians = Math.PI + step_to_radians(step);
-    return [d/2 * Math.cos(radians), d/2 * Math.sin(radians)];
+    return new Vector(d/2 * Math.cos(radians), d/2 * Math.sin(radians));
+  },
+
+};
+
+// Parametric generators that return functions fitting the format above.
+var pattern_generators = {
+
+  /* :param n: number of sides
+   * :param rotation: angle to phase shift, in radians, from pointing up
+   */
+  polygon: function(n, rotation) {
+    rotation = rotation || 0;  // TODO: actually use this
+
+    return function(step, d) {
+      var angle = step_to_radians(step),
+          // polar equation for edge: cos(π/n) / cos((theta mod 2π/n) - π/n)
+          r = (d * (
+            Math.cos(Math.PI/n) / Math.cos(angle % (2*Math.PI/n) - Math.PI/n)
+          ));
+      return new Vector(r * Math.cos(angle), r * Math.sin(angle));
+    };
+  },
+
+  
+  circle: function(frequency) {
+    return function(step, r) {
+      var angle = step_to_radians(step * frequency);
+      return new Vector(r * Math.cos(angle), r * Math.sin(angle));
+    };
   },
 
 };
 
 
-// Parametric generators that return patterns fitting the format above.
-var pattern_generators = {
+// Complete pattern specifications
+var patterns = {
 
-  /* :param n: number of sides
-   * :param rotation: angle to phase shift, in radians
-   */
-  polygon: function(n, rotation) {
-    return function(step, d) {
-      var angle = step_to_radians(step),
-          r = d/2 * (Math.cos(Math.PI/n) / Math.cos(n * angle) % (1/n - Math.PI/n));
-      return [r * Math.cos(angle), r * Math.sin(angle)];
-    };
+  test: {
+    frequency: -2,
+    traveling_function: traveling_functions.isolation,
   },
 
-/*n=5;
-theta=(0:999)/1000;
-r=cos(pi/n)/cos(2*pi*(n*theta)%%1/n-pi/n);
-plot(r*cos(2*pi*theta),r*sin(2*pi*theta),asp=1,xlab="X",ylab="Y",
-main=paste("Regular ",n,"-gon",sep=""));
-*/
+  triquetra: {
+    frequency: -3,
+    traveling_function: pattern_generators.polygon(3),
+  },
 
 };
 
@@ -237,8 +296,14 @@ $(function() {
   var canvas = $('#canvas').get(0);
   var ctx = canvas.getContext("2d");
   var step = 0;
+  var origin = new Vector(300, 300);
+  var r = 150;
+
   var renderer = new TravelingPlotter(
-    ctx, settings.CIRCLE_X, settings.CIRCLE_Y, [patterns.isolation, patterns.extension]
+    ctx, origin.x, origin.y, [
+      patterns.test,
+      //patterns.isolation, pattern_generators.polygon(3)
+    ]
   );
 
   settings.canvas.width = canvas.width;
@@ -246,7 +311,7 @@ $(function() {
 
   // main loop
   setInterval(function() {
-    renderer.draw(step, 50);
+    renderer.draw(step, r);
     advanceTime();
   }, settings.REFRESH);
 
