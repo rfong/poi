@@ -3,8 +3,9 @@ var app = angular.module('PoiApp', []);
 
 app.controller('PoiCtrl', function($scope, $http) {
 
+  $scope.NULL_SELECT_VALUE = '---';
   $scope.options = {};
-  $scope.patternNames = ['---'].concat(_.keys(patterns));
+  $scope.patternNames = [$scope.NULL_SELECT_VALUE].concat(_.keys(patterns));
   $scope.selectedPatternNames = ['extension', 'four_petal_antispin'];
   $scope.getSelectedPatterns = function() {
     return _.map(
@@ -13,6 +14,8 @@ app.controller('PoiCtrl', function($scope, $http) {
       }),
       function(p) { return patterns[p]; });
   };
+
+  $scope.patternGeneratorNames = [$scope.NULL_SELECT_VALUE].concat(_.keys(pattern_generators));
 
   $scope.setOption = function(option, value) {
     // These options are dynamically read by the plotter, so we don't need
@@ -29,6 +32,20 @@ app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.updatePatterns = function() {
     $scope.renderer.set_patterns($scope.getSelectedPatterns());
+  };
+
+  $scope.generatedPattern = {};  // specs for a selected generated pattern
+  $scope.selectGeneratedPattern = function() {
+    var generator = pattern_generators[$scope.generatedPattern.name];
+    $scope.generatedPattern.args = generator.default_args;
+    $scope.generatedPattern.argNames = generator.argnames || [];
+  };
+  // TODO: refactor this so we don't have two different ways of setting patterns
+  // this is temp so we'll just scrap the existing patterns and show this one
+  $scope.showGeneratedPattern = function() {
+    var generator = pattern_generators[$scope.generatedPattern.name];
+    var pattern = generator.generator.apply(null, $scope.generatedPattern.args);
+    $scope.renderer.set_patterns([pattern]);  // for now just replace existing
   };
 
   $scope.getPatterns = function(patternNames) {

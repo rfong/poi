@@ -20,6 +20,7 @@ var settings = {
     size: 12,
     stroke_color: '#fcc',
     stroke_transparency: 0.2,
+    trail_arc: Math.PI / 4,
   },
 
   point_colors: ['#f00', '#5430e7', '#0f0'],  // lol hopefully we don't have more than 3 poi
@@ -231,7 +232,7 @@ _.extend(TravelingPlotter.prototype, {
                             : settings.rave_mode.stroke_transparency
                            );
 
-    var circle_fn = pattern_generators.circle();
+    var circle_fn = function_generators.circle();
     this.trace_function(
       function(theta, r) {
         return pattern.traveling_function(theta, r).add(
@@ -308,7 +309,7 @@ var traveling_functions = {
 
 
 // Parametric generators that return functions fitting the format above.
-var pattern_generators = {
+var function_generators = {
 
   /* :param n: number of sides
    * :param rotation: angle to phase shift, in radians, from pointing up
@@ -351,27 +352,28 @@ var patterns = {
 
   extension: {
     frequency: 1,
-    traveling_function: pattern_generators.circle(),
+    traveling_function: function_generators.circle(),
   },
 
   triquetra: {
     frequency: -2,
-    phase_shift: Math.PI/3,
-    traveling_function: pattern_generators.polygon(3, false),
+    phase_shift: Math.PI/6,
+    traveling_function: function_generators.polygon(3, false, -Math.PI/6),
   },
 
   four_petal_antispin: {
     frequency: -3,
-    phase_shift: Math.PI/2,
-    traveling_function: pattern_generators.polygon(4, false, Math.PI/4),
+    phase_shift: Math.PI/8,
+    traveling_function: function_generators.polygon(4, false, -Math.PI/8),
   },
 
   four_petal_inspin: {
     frequency: -3,
-    traveling_function: pattern_generators.polygon(4, true),
+    traveling_function: function_generators.polygon(4, true),
   },
 
 };
+
 
 // struct for pattern specifications (so we get defaults)
 function Pattern(options) {
@@ -385,7 +387,35 @@ function Pattern(options) {
   };
 }
 
-// map specs to this struct
+
+// Pattern generators
+var pattern_generators = {
+
+  n_petal_antispin: {
+    generator: function(n) {
+      return new Pattern({
+        frequency: -(n-1),
+        phase_shift: Math.PI / (2*n),
+        traveling_function: function_generators.polygon(n, false, -Math.PI / (2*n)),
+      });
+    },
+    argnames: ['N'],
+    default_args: [4],
+  },
+
+};
+
+
+// struct for pattern generator: contains instructions for how to call it
+function PatternGenerator(specs) {
+  _.extend(this, specs);
+}
+
+
+// map specs to structs
 patterns = _.chain(patterns).map(function(pattern, name) {
   return [name, new Pattern(pattern)];
+}).object().value();
+pattern_generators = _.chain(pattern_generators).map(function(gen, name) {
+  return [name, new PatternGenerator(gen)];
 }).object().value();

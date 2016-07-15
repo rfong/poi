@@ -36,39 +36,57 @@
   <div>
 
     <div class="controls">
-      <span class="control"
+      <div class="control"
             ng-repeat="pattern in selectedPatternNames track by $index">
         Pattern {{$index+1}}
         <select ng-options="name as name for name in patternNames"
                 ng-model="selectedPatternNames[$index]"
                 ng-change="updatePatterns()"
                 ></select>
-      </span>
-      <br/>
-      <span control-checkbox
-            name="show_pattern_trace"
-            label="Show pattern traces"
-            value="true"
-            ></span>
-      <span control-checkbox
-            name="show_hand_trace"
-            label="Show hand traces"
-            value="true"
-            ></span>
-      <span control-checkbox
-            name="rave_mode"
-            label="Rave mode"
-            value="false"
-            ></span>
-      <br/>
-      <span class="control">
+      </div>
+
+      <div class="control">
+        Show generative pattern
+        <select ng-options="name as name for name in patternGeneratorNames"
+                ng-model="generatedPattern.name"
+                ng-change="selectGeneratedPattern()"
+                ng-init="generatedPattern.name = '---'"
+                ></select>
+        <span ng-repeat="param in generatedPattern.argNames track by $index">
+          {{param}}
+          <input type="text" ng-model="generatedPattern.args[$index]" />
+        </span>
+        <button ng-show="generatedPattern.name !== NULL_SELECT_VALUE" 
+                ng-click="showGeneratedPattern()"
+                >show</button>
+      </div>
+
+      <div>
+        <span control-checkbox
+              name="show_pattern_trace"
+              label="Show pattern traces"
+              value="true"
+              ></span>
+        <span control-checkbox
+              name="show_hand_trace"
+              label="Show hand traces"
+              value="true"
+              ></span>
+        <span control-checkbox
+              name="rave_mode"
+              label="RAVE MODE"
+              value="false"
+              ></span>
+      </div>
+
+      <div class="control">
         Speed
         <input type="range"
                min=-2 max=2 step=1
                ng-model="speed" ng-init="speed=0"
                ng-change="setSpeed(speed)"
                />
-      </span>
+      </div>
     </div>
   
     <canvas id="canvas" width="650px" height="600px" style="">
