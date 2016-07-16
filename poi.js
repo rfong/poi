@@ -182,7 +182,7 @@ _.extend(Plotter.prototype, {
  */
 
 var TravelingPlotter = function(ctx, x, y, patterns) {
-  this.patterns = patterns;
+  this.patterns = patterns;  // this shouldn't change size
   this.initial_origin = {x: x, y: y};
   TravelingPlotter.prototype.__proto__.constructor.apply(this, [ctx, x, y]);
 };
@@ -195,7 +195,7 @@ _.extend(TravelingPlotter.prototype, {
 
     var self = this,
         args = arguments;
-    _.each(this.patterns, function(pattern, i) {
+    _.each(this.get_patterns(), function(pattern, i) {
       var color = settings.point_colors[i % settings.point_colors.length];
       self.set_traveling_origin(pattern.traveling_function, theta, r);
       self.set_point_color(color);
@@ -215,6 +215,11 @@ _.extend(TravelingPlotter.prototype, {
       // todo: maybe make sure origins are drawn on top since they're smaller?
       self.draw_origin();
     });
+  },
+
+  // get non-null patterns
+  get_patterns: function() {
+    return _.filter(this.patterns, function(p) { return p; });
   },
 
   draw_origin: function() {
@@ -278,10 +283,6 @@ _.extend(TravelingPlotter.prototype, {
         origin = [this.initial_origin.x + travel.x,
                   this.initial_origin.y + travel.y];
     this.set_origin.apply(this, origin);
-  },
-
-  set_patterns: function(patterns) {
-    this.patterns = patterns;
   },
 
 });
@@ -402,6 +403,17 @@ var pattern_generators = {
     argnames: ['N'],
     default_args: [4],
   },
+
+  n_petal_inspin: {
+    generator: function(n) {
+      return new Pattern({
+        frequency: -(n-1),
+        traveling_function: function_generators.polygon(n, true),
+      });
+    },
+    argnames: ['N'],
+    default_args: [4],
+  }
 
 };
 

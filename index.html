@@ -39,26 +39,19 @@
       <div class="control"
             ng-repeat="pattern in selectedPatternNames track by $index">
         Pattern {{$index+1}}
-        <select ng-options="name as name for name in patternNames"
+        <select ng-options="name as name for name in patternNameOptions"
                 ng-model="selectedPatternNames[$index]"
-                ng-change="updatePatterns()"
+                ng-change="handlePatternSelect($index)"
                 ></select>
-      </div>
-
-      <div class="control">
-        Show generative pattern
-        <select ng-options="name as name for name in patternGeneratorNames"
-                ng-model="generatedPattern.name"
-                ng-change="selectGeneratedPattern()"
-                ng-init="generatedPattern.name = '---'"
-                ></select>
-        <span ng-repeat="param in generatedPattern.argNames track by $index">
-          {{param}}
-          <input type="text" ng-model="generatedPattern.args[$index]" />
+        <!--<span ng-show="isSelectedPatternGenerator($index)">is generator</span>-->
+        <span ng-if="isSelectedPatternGenerator($index)">
+          <!-- Note that pattern index is now $parent.$index -->
+          <span ng-repeat="param in patternGeneratorOptions[$index].argNames track by $index">
+            {{param}} =
+            <input type="text" ng-model="patternGeneratorOptions[$parent.$index].args[$index]" />
+          </span>
+          <button ng-click="showGeneratedPattern($parent.$index)">show</button>
         </span>
-        <button ng-show="generatedPattern.name !== NULL_SELECT_VALUE" 
-                ng-click="showGeneratedPattern()"
-                >show</button>
       </div>
 
       <div>

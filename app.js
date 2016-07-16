@@ -1,13 +1,32 @@
 var app = angular.module('PoiApp', []);
 
 
+function repeat(o, n) {
+  /* equivalent to pythonic [o]**n */
+  return _.map(_.range(n), function(i) { return o; });
+}
+
 app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.NULL_SELECT_VALUE = '---';
   $scope.options = {};
 
-  $scope.patternNames = [$scope.NULL_SELECT_VALUE].concat(_.keys(patterns));
+  // this construction assumes that pattern names and pattern generator
+  // names never overlap; TODO should enforce this or add a delineator
+  $scope.patternNameOptions = Array.prototype.concat(
+    [$scope.NULL_SELECT_VALUE],
+    _.keys(patterns),
+    _.keys(pattern_generators)
+  );
+
+  // Length should not change, please pretend this is statically allocated -_-
   $scope.selectedPatternNames = ['extension', 'four_petal_antispin'];
+
+  // Generator parameters, if selected
+  $scope.patternGeneratorOptions = repeat({}, $scope.selectedPatternNames.length);
+
+  /* Convenience functions & checkers */
+
   $scope.getPatterns = function(patternNames) {
     if (!patternNames) { patternNames = $scope.selectedPatternNames; }
     return _.map(
@@ -17,26 +36,48 @@ app.controller('PoiCtrl', function($scope, $http) {
       function(p) { return patterns[p]; });
   };
 
-  $scope.patternGeneratorNames = [$scope.NULL_SELECT_VALUE].concat(_.keys(pattern_generators));
-  $scope.generatedPattern = {};  // specs for a selected generated pattern
-  $scope.selectGeneratedPattern = function() {
-    var generator = pattern_generators[$scope.generatedPattern.name];
-    $scope.generatedPattern.args = generator.default_args;
-    $scope.generatedPattern.argNames = generator.argnames || [];
+  $scope.isSelectedPatternGenerator = function(i) {
+    /* Is the i'th pattern a generator */
+    return $scope.selectedPatternNames[i] in pattern_generators;
+  }
+
+  /* Methods that pass configuration changes to the renderer */
+
+  $scope.handlePatternSelect = function(i) {
+    /* Handler for pattern selector */
+    var pattern_name = $scope.selectedPatternNames[i];
+    if (!pattern_name || pattern_name == $scope.NULL_SELECT_VALUE) { return; }
+    // again, this assumes pattern names and generator names don't overlap...
+    // Selected a generative pattern; set up its interface options
+    if (pattern_name in pattern_generators) {
+      var generator = pattern_generators[pattern_name];
+      $scope.patternGeneratorOptions[i] = {
+        name: pattern_name,
+        args: generator.default_args,
+        argNames: generator.argnames || [],
+      };
+    }
+    // Selected pattern preset; directly update renderer
+    else if (pattern_name in patterns) {
+      $scope.patternGeneratorOptions[i] = {};
+      $scope.updatePattern(i, patterns[pattern_name]);
+    }
   };
 
-  /* Methods to pass configuration changes to the renderer */
-
-  // TODO: refactor this so we don't have two different ways of setting patterns
-  // this is temp so we'll just scrap the existing patterns and show this one
-  $scope.showGeneratedPattern = function() {
-    var generator = pattern_generators[$scope.generatedPattern.name];
-    var pattern = generator.generator.apply(null, $scope.generatedPattern.args);
-    $scope.renderer.set_patterns([pattern]);  // for now just replace existing
+  $scope.showGeneratedPattern = function(i) {
+    /* Handler to update the renderer once a generator's params are set */
+    var generator = pattern_generators[$scope.selectedPatternNames[i]];
+    var pattern = generator.generator.apply(
+      null, $scope.patternGeneratorOptions[i].args);
+    $scope.renderer.patterns[i] = pattern;
   };
 
-  $scope.updatePatterns = function() {
-    $scope.renderer.set_patterns($scope.getPatterns());
+  $scope.updatePattern = function(i, pattern) {
+    /* Updates the i'th pattern in the renderer */
+    // TODO: force renderer to have fixed size patterns array
+    pattern = pattern || patterns[i];
+    if (!pattern) { return; }
+    $scope.renderer.patterns[i] = pattern;
   };
 
   $scope.setSpeed = function(speed) {
@@ -86,7 +127,7 @@ app.controller('PoiCtrl', function($scope, $http) {
 });
 
 
-// Checkbox control directive
+// Checkbox config directive that passes option to renderer onchange
 app.directive('controlCheckbox', function() {
   return {
     restrict: 'A',
