@@ -5,22 +5,38 @@ app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.NULL_SELECT_VALUE = '---';
   $scope.options = {};
+
   $scope.patternNames = [$scope.NULL_SELECT_VALUE].concat(_.keys(patterns));
   $scope.selectedPatternNames = ['extension', 'four_petal_antispin'];
-  $scope.getSelectedPatterns = function() {
+  $scope.getPatterns = function(patternNames) {
+    if (!patternNames) { patternNames = $scope.selectedPatternNames; }
     return _.map(
-      _.filter($scope.selectedPatternNames, function(p) {
+      _.filter(patternNames, function(p) {
         return p in patterns;
       }),
       function(p) { return patterns[p]; });
   };
 
   $scope.patternGeneratorNames = [$scope.NULL_SELECT_VALUE].concat(_.keys(pattern_generators));
+  $scope.generatedPattern = {};  // specs for a selected generated pattern
+  $scope.selectGeneratedPattern = function() {
+    var generator = pattern_generators[$scope.generatedPattern.name];
+    $scope.generatedPattern.args = generator.default_args;
+    $scope.generatedPattern.argNames = generator.argnames || [];
+  };
 
-  $scope.setOption = function(option, value) {
-    // These options are dynamically read by the plotter, so we don't need
-    // to do anything else. I know, it's gross :x
-    window.options[option] = (value===undefined) ? $scope.options[option] : value;
+  /* Methods to pass configuration changes to the renderer */
+
+  // TODO: refactor this so we don't have two different ways of setting patterns
+  // this is temp so we'll just scrap the existing patterns and show this one
+  $scope.showGeneratedPattern = function() {
+    var generator = pattern_generators[$scope.generatedPattern.name];
+    var pattern = generator.generator.apply(null, $scope.generatedPattern.args);
+    $scope.renderer.set_patterns([pattern]);  // for now just replace existing
+  };
+
+  $scope.updatePatterns = function() {
+    $scope.renderer.set_patterns($scope.getPatterns());
   };
 
   $scope.setSpeed = function(speed) {
@@ -30,30 +46,13 @@ app.controller('PoiCtrl', function($scope, $http) {
     $scope.runMainLoop();
   };
 
-  $scope.updatePatterns = function() {
-    $scope.renderer.set_patterns($scope.getSelectedPatterns());
+  $scope.setOption = function(option, value) {
+    // These options are dynamically read by the plotter, so we don't need
+    // to do anything else. I know, it's gross :x
+    window.options[option] = (value===undefined) ? $scope.options[option] : value;
   };
 
-  $scope.generatedPattern = {};  // specs for a selected generated pattern
-  $scope.selectGeneratedPattern = function() {
-    var generator = pattern_generators[$scope.generatedPattern.name];
-    $scope.generatedPattern.args = generator.default_args;
-    $scope.generatedPattern.argNames = generator.argnames || [];
-  };
-  // TODO: refactor this so we don't have two different ways of setting patterns
-  // this is temp so we'll just scrap the existing patterns and show this one
-  $scope.showGeneratedPattern = function() {
-    var generator = pattern_generators[$scope.generatedPattern.name];
-    var pattern = generator.generator.apply(null, $scope.generatedPattern.args);
-    $scope.renderer.set_patterns([pattern]);  // for now just replace existing
-  };
-
-  $scope.getPatterns = function(patternNames) {
-    return _.map(patternNames, function(p) {
-      if (p in patterns)
-        return patterns[p];
-    });
-  };
+  /* Main */
 
   $scope.runMainLoop = function() {
     $scope.loop = setInterval(function() {
@@ -66,7 +65,7 @@ app.controller('PoiCtrl', function($scope, $http) {
     var canvas = $('#canvas').get(0),
         ctx = canvas.getContext("2d"),
         origin = new Vector(300, 300),
-        initial_patterns = $scope.getSelectedPatterns();
+        initial_patterns = $scope.getPatterns();
     $scope.r = 125;
     // TODO: poi to arm ratio
     $scope.theta = 0;
