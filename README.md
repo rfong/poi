@@ -19,6 +19,7 @@ pipe dreams / ideas
 + FORCE DIAGRAMS AND GRAVITY OHHH SNAP
 + beat detection and counter
 + ~~RAVE MODE~~
++ Fourier transform arbitrary shapes into what you have to do with your hands over a long exposure and tell you how many cycles it would take
 + slight hand offsets and positioning relative to body? I want this to make it easier for noobs like me to figure out how their hands should interact with each other especially when crossing over
 + write a constraint solver to animate someone's arms attached to the handles? this would be fun and silly but might discourage creativity and good body movement
 + allow arbitrary pattern phase shifts and n-flowers (I'm writing the pattern generators pretty modularly so this should follow naturally)
