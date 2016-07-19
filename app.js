@@ -19,8 +19,10 @@ app.controller('PoiCtrl', function($scope, $http) {
     _.keys(pattern_generators)
   );
 
+  /* Pattern initialization */
+
   // Length should not change, please pretend this is statically allocated -_-
-  $scope.selectedPatternNames = ['extension', 'four_petal_antispin'];
+  $scope.selectedPatternNames = ['n_petal_antispin', 'extension'];
 
   // Generator parameters, if selected
   $scope.patternGeneratorOptions = repeat({}, $scope.selectedPatternNames.length);
@@ -46,7 +48,11 @@ app.controller('PoiCtrl', function($scope, $http) {
   $scope.handlePatternSelect = function(i) {
     /* Handler for pattern selector */
     var pattern_name = $scope.selectedPatternNames[i];
-    if (!pattern_name || pattern_name == $scope.NULL_SELECT_VALUE) { return; }
+    if (!pattern_name || pattern_name == $scope.NULL_SELECT_VALUE) {
+      $scope.patternGeneratorOptions[i] = {};
+      $scope.updatePattern(i);
+      return;
+    }
     // again, this assumes pattern names and generator names don't overlap...
     // Selected a generative pattern; set up its interface options
     if (pattern_name in pattern_generators) {
@@ -55,7 +61,9 @@ app.controller('PoiCtrl', function($scope, $http) {
         name: pattern_name,
         args: generator.default_args,
         argNames: generator.argnames || [],
+        argSpecs: generator.args,
       };
+      $scope.showGeneratedPattern(i);
     }
     // Selected pattern preset; directly update renderer
     else if (pattern_name in patterns) {
@@ -76,7 +84,6 @@ app.controller('PoiCtrl', function($scope, $http) {
     /* Updates the i'th pattern in the renderer */
     // TODO: force renderer to have fixed size patterns array
     pattern = pattern || patterns[i];
-    if (!pattern) { return; }
     $scope.renderer.patterns[i] = pattern;
   };
 
@@ -123,24 +130,62 @@ app.controller('PoiCtrl', function($scope, $http) {
       $scope.theta += get_d_theta();
       if ($scope.theta > 2*Math.PI) { $scope.theta = 0; }
     };
+
+    _.each($scope.selectedPatternNames, function(name, i) {
+      $scope.handlePatternSelect(i);
+    });
+
   }; $scope.initialize();
 });
 
 
-// Checkbox config directive that passes option to renderer onchange
+/* Directive for config checkbox that passes option to renderer onchange
+ * :attr label: label to display
+ * :attr name: config variable name
+ * :attr value: is checked?
+ */
 app.directive('controlCheckbox', function() {
   return {
     restrict: 'A',
-    template: function(element, attributes) {
+    template: function(element, attrs) {
       return '' +
-      '<span class="control">' + attributes.label +
+      '<span class="control">' + attrs.label +
       '  <input type="checkbox" ' +
-      '         ng-model="options.' + attributes.name + '" ' +
-      '         ng-init="options.' + attributes.name + '= ' + attributes.value + '; ' +
-      '                  setOption(\'' + attributes.name + '\')" ' +
-      '         ng-change="setOption(\'' + attributes.name + '\')" ' +
+      '         ng-model="options.' + attrs.name + '" ' +
+      '         ng-init="options.' + attrs.name + '= ' + attrs.value + '; ' +
+      '                  setOption(\'' + attrs.name + '\')" ' +
+      '         ng-change="setOption(\'' + attrs.name + '\')" ' +
       '         />' +
       '</span>';
+    },
+  };
+});
+
+/* Directive for ranged numerical param config dropdown
+ * :attr default: initial value
+ * :attr start: start value || 1
+ * :attr stop : stop value || 1
+ * :attr step: amount to increment || 1
+ */
+app.directive('rangedParamDropdown', function() {
+  return {
+    restrict: 'A',
+    template: function(element, attrs) {
+      return '' +
+      '<span>' +
+         // select ng-options doesn't seem to work for some reason
+      '  <select ng-model="patternGeneratorOptions[$parent.$index].args[$index]" ' +
+      '          ng-init="patternGeneratorOptions[$parent.$index].args[$index] = ' + attrs.default + '" ' +
+      '          ng-change="showGeneratedPattern($parent.$index)" ' +
+      '          ng-options="v as v for v in values">' +
+      '  </select>' +
+      '</span>';
+    },
+    link: function($scope, element, attrs) {
+      var step = parseInt(attrs.step || 1),
+          start = parseInt(attrs.start || 1),
+          stop = parseInt(attrs.stop || 1) + step;
+      $scope.values = _.range(start, stop, step);
     },
   };
 });

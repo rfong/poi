@@ -356,23 +356,6 @@ var patterns = {
     traveling_function: function_generators.circle(),
   },
 
-  triquetra: {
-    frequency: -2,
-    phase_shift: Math.PI/6,
-    traveling_function: function_generators.polygon(3, false, -Math.PI/6),
-  },
-
-  four_petal_antispin: {
-    frequency: -3,
-    phase_shift: Math.PI/8,
-    traveling_function: function_generators.polygon(4, false, -Math.PI/8),
-  },
-
-  four_petal_inspin: {
-    frequency: -3,
-    traveling_function: function_generators.polygon(4, true),
-  },
-
 };
 
 
@@ -402,6 +385,13 @@ var pattern_generators = {
     },
     argnames: ['N'],
     default_args: [4],
+    args: [
+      { name: 'N',
+        default: 4,
+        type: 'int',
+        min: 3,
+      },
+    ],
   },
 
   n_petal_inspin: {
