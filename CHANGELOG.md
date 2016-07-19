@@ -1,3 +1,7 @@
+2016-07-18
+-----
++ make parametric pattern generators accessible in interface
+
 2016-07-13
 -----
 + configuration options for display
