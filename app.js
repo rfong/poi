@@ -80,6 +80,17 @@ app.controller('PoiCtrl', function($scope, $http) {
     $scope.renderer.patterns[i] = pattern;
   };
 
+  $scope.getPatternParamCallback = function(patternIndex, paramIndex) {
+    /* Return a callback which updates the value for param `paramIndex` for
+     * the `patternIndex`th generated pattern.
+     */
+    return function(value) {
+      console.log("Update param", patternIndex, "on pattern", patternIndex, "to", value);
+      $scope.patternGeneratorOptions[patternIndex].args[paramIndex] = value;
+      $scope.showGeneratedPattern(patternIndex);
+    };
+  };
+
   $scope.updatePattern = function(i, pattern) {
     /* Updates the i'th pattern in the renderer */
     // TODO: force renderer to have fixed size patterns array
@@ -170,22 +181,35 @@ app.directive('controlCheckbox', function() {
 app.directive('rangedParamDropdown', function() {
   return {
     restrict: 'A',
+    scope: {
+      step: '=',
+      start: '=',
+      stop: '=',
+      default: '=',
+      callback: '&',
+    },
     template: function(element, attrs) {
       return '' +
       '<span>' +
-         // select ng-options doesn't seem to work for some reason
-      '  <select ng-model="patternGeneratorOptions[$parent.$index].args[$index]" ' +
-      '          ng-init="patternGeneratorOptions[$parent.$index].args[$index] = ' + attrs.default + '" ' +
-      '          ng-change="showGeneratedPattern($parent.$index)" ' +
+      // Relying on this structure is terribly nonmodular. :(
+      // I haven't yet figured out a nice way to combine isolate scope with
+      // binding to a parent property this fine grained.
+      //'  <select ng-model="patternGeneratorOptions[patternIndex].args[paramIndex]" ' +
+      //'          ng-init="patternGeneratorOptions[patternIndex].args[paramIndex] = default" ' +
+      '  <select ng-model="model" ' +
+      '          ng-change="callback(model)" ' +
       '          ng-options="v as v for v in values">' +
       '  </select>' +
       '</span>';
     },
-    link: function($scope, element, attrs) {
-      var step = parseInt(attrs.step || 1),
-          start = parseInt(attrs.start || 1),
-          stop = parseInt(attrs.stop || 1) + step;
-      $scope.values = _.range(start, stop, step);
+    link: function(scope, element, attrs) {
+      scope.step = parseInt(scope.step || 1);
+      scope.start = parseInt(scope.start || 1);
+      scope.stop = parseInt(scope.stop || 1);
+      scope.values = _.range(scope.start, scope.stop, scope.step);
+      scope.model = scope.default;
+
+      scope.callback = scope.callback();  // unwrap the callback
     },
   };
 });

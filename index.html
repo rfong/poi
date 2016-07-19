@@ -43,21 +43,13 @@
                 ng-model="selectedPatternNames[$index]"
                 ng-change="handlePatternSelect($index)"
                 ></select>
-        <!--<span ng-show="isSelectedPatternGenerator($index)">is generator</span>-->
         <span ng-if="isSelectedPatternGenerator($index)">
           <!-- Note that pattern index is now $parent.$index -->
-          <!--
-          <span ng-repeat="param in patternGeneratorOptions[$index].argNames track by $index">
-            {{param}} =
-            <input type="text"
-                   ng-model="patternGeneratorOptions[$parent.$index].args[$index]"
-                   ng-change="showGeneratedPattern($parent.$index)"
-                   />
-          </span>-->
           <span ng-repeat="arg in patternGeneratorOptions[$index].argSpecs track by $index">
             {{arg.name}} = 
             <span ranged-param-dropdown
-                  start=3 stop=8 default=5
+                  start="arg.min" stop="arg.max" default="arg.default"
+                  callback="getPatternParamCallback($parent.$index, $index)"
                   ></span>
           </span>
         </span>

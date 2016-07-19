@@ -390,6 +390,7 @@ var pattern_generators = {
         default: 4,
         type: 'int',
         min: 3,
+        max: 8,
       },
     ],
   },
