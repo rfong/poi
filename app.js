@@ -59,8 +59,8 @@ app.controller('PoiCtrl', function($scope, $http) {
       var generator = pattern_generators[pattern_name];
       $scope.patternGeneratorOptions[i] = {
         name: pattern_name,
-        args: generator.default_args,
-        argNames: generator.argnames || [],
+        args: _.pluck(generator.args, 'default'),
+        argNames: _.pluck(generator.args, 'name'),
         argSpecs: generator.args,
       };
       $scope.showGeneratedPattern(i);
