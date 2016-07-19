@@ -38,6 +38,7 @@ window.options = {
 };
 
 function get_d_theta() { return 2 * Math.PI / window.options.STEPS };
+function degrees_to_radians(degrees) { return degrees * 2 * Math.PI / 360; }
 
 
 // Hooray, pseudo-OOP JS
@@ -376,21 +377,31 @@ function Pattern(options) {
 var pattern_generators = {
 
   n_petal_antispin: {
-    generator: function(n) {
+    generator: function(n, rotation) {
+      if (!rotation) { rotation = 0; }
+      rotation = degrees_to_radians(rotation);
       return new Pattern({
         frequency: -(n-1),
         phase_shift: Math.PI / (2*n),
         traveling_function: function_generators.polygon(n, false, -Math.PI / (2*n)),
       });
     },
-    argnames: ['N'],
-    default_args: [4],
+    argnames: ['N', 'phase'],
+    default_args: [4, 0],
     args: [
       { name: 'N',
         default: 4,
         type: 'int',
         min: 3,
         max: 8,
+      },
+      {
+        name: 'rotation',
+        default: 0,
+        type: 'int',
+        min: 0,
+        max: 360,
+        step: 90,
       },
     ],
   },

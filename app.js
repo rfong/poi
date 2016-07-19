@@ -85,7 +85,6 @@ app.controller('PoiCtrl', function($scope, $http) {
      * the `patternIndex`th generated pattern.
      */
     return function(value) {
-      console.log("Update param", patternIndex, "on pattern", patternIndex, "to", value);
       $scope.patternGeneratorOptions[patternIndex].args[paramIndex] = value;
       $scope.showGeneratedPattern(patternIndex);
     };
@@ -191,11 +190,6 @@ app.directive('rangedParamDropdown', function() {
     template: function(element, attrs) {
       return '' +
       '<span>' +
-      // Relying on this structure is terribly nonmodular. :(
-      // I haven't yet figured out a nice way to combine isolate scope with
-      // binding to a parent property this fine grained.
-      //'  <select ng-model="patternGeneratorOptions[patternIndex].args[paramIndex]" ' +
-      //'          ng-init="patternGeneratorOptions[patternIndex].args[paramIndex] = default" ' +
       '  <select ng-model="model" ' +
       '          ng-change="callback(model)" ' +
       '          ng-options="v as v for v in values">' +
@@ -203,10 +197,13 @@ app.directive('rangedParamDropdown', function() {
       '</span>';
     },
     link: function(scope, element, attrs) {
-      scope.step = parseInt(scope.step || 1);
-      scope.start = parseInt(scope.start || 1);
-      scope.stop = parseInt(scope.stop || 1);
-      scope.values = _.range(scope.start, scope.stop, scope.step);
+      _.each(['step', 'start', 'stop'], function(prop) {
+        scope[prop] = parseInt(scope[prop]);
+        if (!_.isNumber(scope[prop]) || _.isNaN(scope[prop])) {
+          scope[prop] = 1;
+        }
+      });
+      scope.values = _.range(scope.start, scope.stop + scope.step, scope.step);
       scope.model = scope.default;
 
       scope.callback = scope.callback();  // unwrap the callback

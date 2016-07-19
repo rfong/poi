@@ -48,7 +48,7 @@
           <span ng-repeat="arg in patternGeneratorOptions[$index].argSpecs track by $index">
             {{arg.name}} = 
             <span ranged-param-dropdown
-                  start="arg.min" stop="arg.max" default="arg.default"
+                  start="arg.min" stop="arg.max" default="arg.default" step="arg.step"
                   callback="getPatternParamCallback($parent.$index, $index)"
                   ></span>
           </span>
