@@ -43,6 +43,18 @@ app.controller('PoiCtrl', function($scope, $http) {
     return $scope.selectedPatternNames[i] in pattern_generators;
   }
 
+  // Given a param specification, return an array of its value options
+  $scope.getParamValues = function(argSpec) {
+    if (_.isArray(argSpec.values)) { return argSpec.values; }
+    _.each(['step', 'start', 'stop'], function(prop) {
+      argSpec[prop] = parseInt(argSpec[prop]);
+      if (!_.isNumber(argSpec[prop]) || _.isNaN(argSpec[prop])) {
+        argSpec[prop] = 1;
+      }
+    });
+    return _.range(argSpec.start, argSpec.stop + argSpec.step, argSpec.step);
+  };
+
   /* Methods that pass configuration changes to the renderer */
 
   $scope.handlePatternSelect = function(i) {
@@ -175,50 +187,6 @@ app.directive('controlCheckbox', function() {
       '         ng-change="setOption(\'' + attrs.name + '\')" ' +
       '         />' +
       '</span>';
-    },
-  };
-});
-
-/* Directive for ranged numerical param config dropdown
- * :attr default: initial value
- * :attr start: start value || 1
- * :attr stop : stop value || 1
- * :attr step: amount to increment || 1
- */
-app.directive('rangedParamDropdown', function() {
-  return {
-    restrict: 'A',
-    scope: {
-      step: '=',
-      start: '=',
-      stop: '=',
-      default: '=',
-      values: '=',
-      callback: '&',
-    },
-    template: function(element, attrs) {
-      return '' +
-      '<span>' +
-      '  <select ng-model="model" ' +
-      '          ng-change="callback(model)" ' +
-      '          ng-options="v as v for v in values">' +
-      '  </select>' +
-      '</span>';
-    },
-    link: function(scope, element, attrs) {
-      // if values are already specified, overrides step+range
-      if (!_.isArray(scope.values)) {
-        _.each(['step', 'start', 'stop'], function(prop) {
-          scope[prop] = parseInt(scope[prop]);
-          if (!_.isNumber(scope[prop]) || _.isNaN(scope[prop])) {
-            scope[prop] = 1;
-          }
-        });
-        scope.values = _.range(scope.start, scope.stop + scope.step, scope.step);
-      }
-      scope.model = scope.default;
-
-      scope.callback = scope.callback();  // unwrap the callback
     },
   };
 });

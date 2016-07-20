@@ -1,6 +1,7 @@
 2016-07-20
 -----
 + allow full-pattern rotations
++ allow pattern phase shifts
 
 2016-07-18
 -----

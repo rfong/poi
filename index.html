@@ -36,6 +36,7 @@
   <div>
 
     <div class="controls">
+      <!-- Pattern selector -->
       <div class="control"
             ng-repeat="pattern in selectedPatternNames track by $index">
         Pattern {{$index+1}}
@@ -43,15 +44,16 @@
                 ng-model="selectedPatternNames[$index]"
                 ng-change="handlePatternSelect($index)"
                 ></select>
+        <!-- Param value control -->
         <span ng-if="isSelectedPatternGenerator($index)">
           <!-- Note that pattern index is now $parent.$index -->
-          <span ng-repeat="arg in patternGeneratorOptions[$index].argSpecs track by $index">
+          <span ng-repeat="arg in patternGeneratorOptions[$index].argSpecs track by $index"
+                class="param">
             {{arg.name}} = 
-            <span ranged-param-dropdown
-                  start="arg.min" stop="arg.max" default="arg.default" step="arg.step"
-                  values="arg.values"
-                  callback="getPatternParamCallback($parent.$index, $index)"
-                  ></span>
+            <select ng-options="v as v for v in getParamValues(arg)"
+                    ng-model="patternGeneratorOptions[$parent.$index].args[$index]"
+                    ng-change="showGeneratedPattern($parent.$index)"
+                    ></select>
           </span>
         </span>
       </div>
