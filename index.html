@@ -45,7 +45,8 @@
                 ></select>
         <span ng-if="isSelectedPatternGenerator($index)">
           <!-- Note that pattern index is now $parent.$index -->
-          <span ng-repeat="arg in patternGeneratorOptions[$index].argSpecs track by $index">
+          <span ng-repeat="arg in patternGeneratorOptions[$index].argSpecs track by $index"
+                class="param">
             {{arg.name}} = 
             <span ranged-param-dropdown
                   start="arg.min" stop="arg.max" default="arg.default" step="arg.step"

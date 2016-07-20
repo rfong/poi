@@ -13,6 +13,9 @@ body.rave {
   .controls .control {
     margin-right: 2em; }
 
+.param {
+  margin-left: 1em; }
+
 .footer {
   margin-top: 2em; }
 
