@@ -1,3 +1,7 @@
+2016-07-20
+-----
++ allow full-pattern rotations
+
 2016-07-18
 -----
 + make parametric pattern generators accessible in interface

@@ -24,6 +24,7 @@ var settings = {
   },
 
   point_colors: ['#f00', '#5430e7', '#0f0'],  // lol hopefully we don't have more than 3 poi
+  POINT_DEBUG_COLOR: '#ffe500',
 
   rave_mode: {
     background_color: '#000',
@@ -208,7 +209,13 @@ _.extend(TravelingPlotter.prototype, {
         self.trace_pattern(pattern, r, color);
       }
 
-      // Draw
+      // DEBUG: near relative theta=0, flash a different color
+      // approximate because of step rounding errors caused by speed change
+      /*if (Math.abs(pattern.shift_theta(theta)) <= get_d_theta()) {
+      //  self.set_point_color(settings.POINT_DEBUG_COLOR);
+      }*/
+
+      // Draw the point
       self.constructor.prototype.__proto__.draw.apply(self, [
         pattern.shift_theta(theta), r,
       ]);
@@ -315,12 +322,12 @@ var function_generators = {
 
   /* :param n: number of sides
    * :param rotation: angle to phase shift, in radians, from pointing up
-   * :param is_phase_shifted: flips an antispin to an inspin
+   * :param phase_shift: Math.PI/n to flip an antispin to an inspin
    */
-  polygon: function(n, is_phase_shifted, rotation) {
-    var phase_shift = is_phase_shifted ? Math.PI/n : 0;
-    rotation = (rotation || 0);
-    if (!is_phase_shifted) rotation += Math.PI/n;
+  polygon: function(n, phase_shift, rotation) {
+    phase_shift = phase_shift || 0
+    rotation = rotation || 0;
+    //if (!is_phase_shifted) rotation += Math.PI/n;
     // oh god why won't these rotate right
 
     return function(theta, d) {
@@ -360,15 +367,22 @@ var patterns = {
 };
 
 
-// struct for pattern specifications (so we get defaults)
+// struct for pattern specifications
 function Pattern(options) {
   var self = this;
-  this.traveling_function = options.traveling_function;  // must exist
+  // defines hand movement. required arg
+  this.traveling_function = options.traveling_function;
+  // poi frequency
   this.frequency = options.frequency || 1;
+  // phase shift of poi from hand
   this.phase_shift = options.phase_shift || 0;
+  // rotation of poi
+  this.rotation = options.rotation || 0;
 
   this.shift_theta = function(theta, pattern) {
-    return (theta + self.phase_shift) * self.frequency;
+    /* This one is used to phase shift the poi */
+    return (
+      ((theta + self.phase_shift) * self.frequency + self.rotation) % (2*Math.PI));
   };
 }
 
@@ -380,14 +394,14 @@ var pattern_generators = {
     generator: function(n, rotation) {
       if (!rotation) { rotation = 0; }
       rotation = degrees_to_radians(rotation);
+      var half_side_rotation = Math.PI / (2*n);
       return new Pattern({
         frequency: -(n-1),
-        phase_shift: Math.PI / (2*n),
-        traveling_function: function_generators.polygon(n, false, -Math.PI / (2*n)),
+        phase_shift: half_side_rotation,
+        rotation: -rotation * n,
+        traveling_function: function_generators.polygon(n, rotation, half_side_rotation),
       });
     },
-    argnames: ['N', 'phase'],
-    default_args: [4, 0],
     args: [
       { name: 'N',
         default: 4,
@@ -395,26 +409,41 @@ var pattern_generators = {
         min: 3,
         max: 8,
       },
-      {
-        name: 'rotation',
+      { name: 'rotation',
         default: 0,
         type: 'int',
         min: 0,
-        max: 360,
-        step: 90,
+        max: 90,
+        step: 30,
       },
     ],
   },
 
   n_petal_inspin: {
-    generator: function(n) {
+    // Note that the traveling function of an inspin is offset Math.PI/2n from
+    // an antispin
+    generator: function(n, rotation) {
       return new Pattern({
         frequency: -(n-1),
-        traveling_function: function_generators.polygon(n, true),
+        rotation: -rotation * n,
+        traveling_function: function_generators.polygon(n, Math.PI/n + rotation, 0),
       });
     },
-    argnames: ['N'],
-    default_args: [4],
+    args: [
+      { name: 'N',
+        default: 4,
+        type: 'int',
+        min: 3,
+        max: 8,
+      },
+      { name: 'rotation',
+        default: 0,
+        type: 'int',
+        min: 0,
+        max: 90,
+        step: 30,
+      },
+    ],
   }
 
 };
