@@ -469,7 +469,7 @@ var pattern_generators = {
         stop: 8,
       },
       { name: 'rotation',
-        default: 0,
+        default: 45,  // default to diamond mode
         type: 'int',
         //start: 0,
         //stop: 90,

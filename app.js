@@ -38,6 +38,10 @@ app.controller('PoiCtrl', function($scope, $http) {
       function(p) { return patterns[p]; });
   };
 
+  $scope.getPatternColor = function(patternIndex) {
+    return settings.point_colors[patternIndex % settings.point_colors.length];
+  };
+
   $scope.isSelectedPatternGenerator = function(i) {
     /* Is the i'th pattern a generator */
     return $scope.selectedPatternNames[i] in pattern_generators;

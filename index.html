@@ -39,7 +39,9 @@
       <!-- Pattern selector -->
       <div class="control"
             ng-repeat="pattern in selectedPatternNames track by $index">
-        Pattern {{$index+1}}
+        <span style="color: {{ getPatternColor($index) }}">
+          Pattern {{$index+1}}
+        </span>
         <select ng-options="name as name for name in patternNameOptions"
                 ng-model="selectedPatternNames[$index]"
                 ng-change="handlePatternSelect($index)"
