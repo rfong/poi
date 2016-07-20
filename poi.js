@@ -432,10 +432,7 @@ var pattern_generators = {
       { name: 'rotation',
         default: 0,
         type: 'int',
-        //start: 0,
-        //stop: 90,
-        //step: 30,
-        values: [0, 30, 45, 60],//, 90, 180, 270],
+        values: [0, 30, 45, 60],
       },
       // pattern start point
       { name: 'phase',
@@ -471,10 +468,7 @@ var pattern_generators = {
       { name: 'rotation',
         default: 45,  // default to diamond mode
         type: 'int',
-        //start: 0,
-        //stop: 90,
-        //step: 30,
-        values: [0, 30, 45, 60],//, 90, 180, 270],
+        values: [0, 30, 45, 60],
       },
       // pattern start point
       { name: 'phase',
