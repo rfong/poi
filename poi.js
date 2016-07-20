@@ -201,8 +201,9 @@ _.extend(TravelingPlotter.prototype, {
     var self = this,
         args = arguments;
     _.each(this.get_patterns(), function(pattern, i) {
+      var my_theta = theta + pattern.pattern_phase_shift;
       var color = settings.point_colors[i % settings.point_colors.length];
-      self.set_traveling_origin(pattern.traveling_function, theta, r);
+      self.set_traveling_origin(pattern.traveling_function, my_theta, r);
       self.set_point_color(color);
 
       if (window.options.show_hand_trace) {
@@ -214,13 +215,13 @@ _.extend(TravelingPlotter.prototype, {
 
       // DEBUG: near relative theta=0, flash a different color
       // approximate because of step rounding errors caused by speed change
-      /*if (Math.abs(pattern.shift_theta(theta)) <= get_d_theta()) {
+      /*if (Math.abs(pattern.shift_theta(my_theta)) <= get_d_theta()) {
       //  self.set_point_color(settings.POINT_DEBUG_COLOR);
       }*/
 
       // Draw the point
       self.constructor.prototype.__proto__.draw.apply(self, [
-        pattern.shift_theta(theta), r,
+        pattern.shift_theta(my_theta), r,
       ]);
 
       // todo: maybe make sure origins are drawn on top since they're smaller?
@@ -391,6 +392,8 @@ function Pattern(options) {
   this.phase_shift = options.phase_shift || 0;
   // rotation of poi
   this.rotation = options.rotation || 0;
+  // phase shift of entire pattern
+  this.pattern_phase_shift = options.pattern_phase_shift || 0;
 
   this.shift_theta = function(theta, pattern) {
     /* This one is used to phase shift the poi */
@@ -404,12 +407,14 @@ function Pattern(options) {
 var pattern_generators = {
 
   n_petal_antispin: {
-    generator: function(n, rotation) {
+    generator: function(n, rotation, phase) {
       if (!rotation) { rotation = 0; }
       rotation = to_radians(rotation) + settings.UNIVERSAL_ROTATION;
+      phase = to_radians(phase);
       var half_side_rotation = Math.PI / (2*n);
       return new Pattern({
         frequency: -(n-1),
+        pattern_phase_shift: phase,
         phase_shift: half_side_rotation,
         rotation: -rotation * n,
         traveling_function: function_generators.polygon(n, rotation, half_side_rotation),
@@ -422,6 +427,8 @@ var pattern_generators = {
         min: 3,
         max: 8,
       },
+      // todo: instead of absolute rotation, maybe specify amount out of phase
+      // (fraction of π/n)
       { name: 'rotation',
         default: 0,
         type: 'int',
@@ -430,17 +437,27 @@ var pattern_generators = {
         //step: 30,
         values: [0, 30, 45, 60],//, 90, 180, 270],
       },
+      // pattern start point
+      { name: 'phase',
+        default: 0,
+        type: 'int',
+        min: 0,
+        max: 270,
+        step: 90,
+      },
     ],
   },
 
   n_petal_inspin: {
     // Note that the traveling function of an inspin is offset Math.PI/2n from
     // an antispin
-    generator: function(n, rotation) {
+    generator: function(n, rotation, phase) {
       rotation = to_radians(rotation) + settings.UNIVERSAL_ROTATION;
+      phase = to_radians(phase);
       return new Pattern({
         frequency: -(n-1),
         rotation: -rotation * n,
+        pattern_phase_shift: phase,
         traveling_function: function_generators.polygon(n, Math.PI/n + rotation, 0),
       });
     },
@@ -458,6 +475,14 @@ var pattern_generators = {
         //max: 90,
         //step: 30,
         values: [0, 30, 45, 60],//, 90, 180, 270],
+      },
+      // pattern start point
+      { name: 'phase',
+        default: 0,
+        type: 'int',
+        min: 0,
+        max: 270,
+        step: 90,
       },
     ],
   }
