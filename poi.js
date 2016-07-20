@@ -457,7 +457,7 @@ var pattern_generators = {
       return new Pattern({
         frequency: -(n-1),
         rotation: -rotation * n,
-        pattern_phase_shift: phase,
+        pattern_phase_shift: Math.PI/(2*n) + phase,  // compensation for traveling offset
         traveling_function: function_generators.polygon(n, Math.PI/n + rotation, 0),
       });
     },
