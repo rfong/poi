@@ -24,7 +24,7 @@ var settings = {
   },
 
   point_colors: ['#f00', '#5430e7', '#0f0'],  // lol hopefully we don't have more than 3 poi
-  POINT_DEBUG_COLOR: '#ffe500',
+  POINT_DEBUG_COLOR: '#bf00ff',
 
   rave_mode: {
     background_color: '#000',
@@ -32,6 +32,8 @@ var settings = {
     glow_blur: 50,
     stroke_transparency: 0.7,
   },
+
+  UNIVERSAL_ROTATION: Math.PI / 2,  // point up instead of right
 };
 
 window.options = {
@@ -39,7 +41,8 @@ window.options = {
 };
 
 function get_d_theta() { return 2 * Math.PI / window.options.STEPS };
-function degrees_to_radians(degrees) { return degrees * 2 * Math.PI / 360; }
+function to_radians(degrees) { return degrees * 2 * Math.PI / 360; }
+function to_degrees(radians) { return radians * 360 / (2 * Math.PI); }
 
 
 // Hooray, pseudo-OOP JS
@@ -284,6 +287,16 @@ _.extend(TravelingPlotter.prototype, {
     }
     this.ctx.stroke();
     this.ctx.closePath();
+
+    // debug - highlight point @ theta=0
+    if (options.DEV) {
+      this.ctx.save();
+      this.ctx.fillStyle = settings.POINT_DEBUG_COLOR;
+      var coords = fn(0,r);
+      Plotter.prototype.__proto__.draw_dot.apply(this, [
+        this.initial_origin.x + coords.x, this.initial_origin.y + coords.y, 3, true]);
+      this.ctx.restore();
+    }
   },
 
   set_traveling_origin: function(traveling_function, theta, r) {
@@ -393,7 +406,7 @@ var pattern_generators = {
   n_petal_antispin: {
     generator: function(n, rotation) {
       if (!rotation) { rotation = 0; }
-      rotation = degrees_to_radians(rotation);
+      rotation = to_radians(rotation) + settings.UNIVERSAL_ROTATION;
       var half_side_rotation = Math.PI / (2*n);
       return new Pattern({
         frequency: -(n-1),
@@ -412,9 +425,10 @@ var pattern_generators = {
       { name: 'rotation',
         default: 0,
         type: 'int',
-        min: 0,
-        max: 90,
-        step: 30,
+        //min: 0,
+        //max: 90,
+        //step: 30,
+        values: [0, 30, 45, 60],//, 90, 180, 270],
       },
     ],
   },
@@ -423,6 +437,7 @@ var pattern_generators = {
     // Note that the traveling function of an inspin is offset Math.PI/2n from
     // an antispin
     generator: function(n, rotation) {
+      rotation = to_radians(rotation) + settings.UNIVERSAL_ROTATION;
       return new Pattern({
         frequency: -(n-1),
         rotation: -rotation * n,
@@ -439,9 +454,10 @@ var pattern_generators = {
       { name: 'rotation',
         default: 0,
         type: 'int',
-        min: 0,
-        max: 90,
-        step: 30,
+        //min: 0,
+        //max: 90,
+        //step: 30,
+        values: [0, 30, 45, 60],//, 90, 180, 270],
       },
     ],
   }

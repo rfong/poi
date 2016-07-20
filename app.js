@@ -22,7 +22,7 @@ app.controller('PoiCtrl', function($scope, $http) {
   /* Pattern initialization */
 
   // Length should not change, please pretend this is statically allocated -_-
-  $scope.selectedPatternNames = ['n_petal_antispin', 'extension'];
+  $scope.selectedPatternNames = ['n_petal_antispin', 'n_petal_inspin'];
 
   // Generator parameters, if selected
   $scope.patternGeneratorOptions = repeat({}, $scope.selectedPatternNames.length);
@@ -97,11 +97,19 @@ app.controller('PoiCtrl', function($scope, $http) {
     $scope.renderer.patterns[i] = pattern;
   };
 
-  $scope.setSpeed = function(speed) {
-    var multiplier = Math.pow(1.5, -speed);
+  $scope.setSpeed = function() {
+    var multiplier = Math.pow(1.5, -$scope.speed);
     settings.REFRESH = 25 * multiplier;
     clearInterval($scope.loop);
     $scope.runMainLoop();
+  };
+
+  $scope.pauseHandler = function() {
+    if ($scope.paused) {
+      clearInterval($scope.loop);
+    } else {
+      $scope.setSpeed();
+    }
   };
 
   $scope.setOption = function(option, value) {
@@ -185,6 +193,7 @@ app.directive('rangedParamDropdown', function() {
       start: '=',
       stop: '=',
       default: '=',
+      values: '=',
       callback: '&',
     },
     template: function(element, attrs) {
@@ -197,13 +206,16 @@ app.directive('rangedParamDropdown', function() {
       '</span>';
     },
     link: function(scope, element, attrs) {
-      _.each(['step', 'start', 'stop'], function(prop) {
-        scope[prop] = parseInt(scope[prop]);
-        if (!_.isNumber(scope[prop]) || _.isNaN(scope[prop])) {
-          scope[prop] = 1;
-        }
-      });
-      scope.values = _.range(scope.start, scope.stop + scope.step, scope.step);
+      // if values are already specified, overrides step+range
+      if (!_.isArray(scope.values)) {
+        _.each(['step', 'start', 'stop'], function(prop) {
+          scope[prop] = parseInt(scope[prop]);
+          if (!_.isNumber(scope[prop]) || _.isNaN(scope[prop])) {
+            scope[prop] = 1;
+          }
+        });
+        scope.values = _.range(scope.start, scope.stop + scope.step, scope.step);
+      }
       scope.model = scope.default;
 
       scope.callback = scope.callback();  // unwrap the callback

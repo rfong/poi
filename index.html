@@ -49,6 +49,7 @@
             {{arg.name}} = 
             <span ranged-param-dropdown
                   start="arg.min" stop="arg.max" default="arg.default" step="arg.step"
+                  values="arg.values"
                   callback="getPatternParamCallback($parent.$index, $index)"
                   ></span>
           </span>
@@ -71,15 +72,29 @@
               label="RAVE MODE"
               value="false"
               ></span>
+        <!--
+        <br/>
+        <span control-checkbox
+              name="DEV"
+              label="DEBUG"
+              value="false"
+              ></span>
+        -->
       </div>
 
-      <div class="control">
-        Speed
-        <input type="range"
-               min=-2 max=2 step=1
-               ng-model="speed" ng-init="speed=0"
-               ng-change="setSpeed(speed)"
-               />
+      <div>
+        <span class="control">
+          Speed
+          <input type="range"
+                 min=-2 max=2 step=1
+                 ng-model="speed" ng-init="speed=0"
+                 ng-change="setSpeed()"
+                 />
+        </span>
+        <span class="control" ng-show="options.DEV">
+          Pause
+          <input type="checkbox" ng-model="paused" ng-change="pauseHandler()" />
+        </span>
       </div>
     </div>
   
