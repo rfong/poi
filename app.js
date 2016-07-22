@@ -22,7 +22,7 @@ app.controller('PoiCtrl', function($scope, $http) {
   /* Pattern initialization */
 
   // Length should not change, please pretend this is statically allocated -_-
-  $scope.selectedPatternNames = ['n_petal_antispin', 'n_petal_inspin'];
+  $scope.selectedPatternNames = [null, null];
 
   // Generator parameters, if selected
   $scope.patternGeneratorOptions = repeat({}, $scope.selectedPatternNames.length);
@@ -61,7 +61,7 @@ app.controller('PoiCtrl', function($scope, $http) {
 
   /* Methods that pass configuration changes to the renderer */
 
-  $scope.handlePatternSelect = function(i) {
+  $scope.handlePatternSelect = function(i, preventUrlUpdate) {
     /* Handler for pattern selector */
     var pattern_name = $scope.selectedPatternNames[i];
     if (!pattern_name || pattern_name == $scope.NULL_SELECT_VALUE) {
@@ -86,14 +86,17 @@ app.controller('PoiCtrl', function($scope, $http) {
       $scope.patternGeneratorOptions[i] = {};
       $scope.updatePattern(i, patterns[pattern_name]);
     }
+    if (!preventUrlUpdate) { $scope.saveStateToUrlParams(); }
   };
 
-  $scope.showGeneratedPattern = function(i) {
+  $scope.showGeneratedPattern = function(i, preventUrlUpdate) {
     /* Handler to update the renderer once a generator's params are set */
     var generator = pattern_generators[$scope.selectedPatternNames[i]];
+    if (!generator) { return; }
     var pattern = generator.generator.apply(
       null, $scope.patternGeneratorOptions[i].args);
     $scope.renderer.patterns[i] = pattern;
+    if (!preventUrlUpdate) { $scope.saveStateToUrlParams(); }
   };
 
   $scope.getPatternParamCallback = function(patternIndex, paramIndex) {
@@ -128,10 +131,57 @@ app.controller('PoiCtrl', function($scope, $http) {
     }
   };
 
-  $scope.setOption = function(option, value) {
+  $scope.setOption = function(option, value, preventUrlUpdate) {
     // These options are dynamically read by the plotter, so we don't need
     // to do anything else. I know, it's gross :x
     window.options[option] = (value===undefined) ? $scope.options[option] : value;
+    if (!preventUrlUpdate) { $scope.saveStateToUrlParams(); }
+  };
+
+  $scope.setOptions = function(options, preventUrlUpdate) {
+    if (!preventUrlUpdate) { $scope.saveStateToUrlParams(); }
+    $scope.options = options;
+    _.each($scope.options, function(val, key) {
+      $scope.setOption(key, val, preventUrlUpdate);
+    });
+  };
+
+  /* Permalinking */
+
+  $scope.getUrlParams = function() {
+    var params = _.object(_.map(
+      window.location.search.substring(1).replace(/\/$/, '').split('&'),
+      function(pair) { return pair.split('='); }
+    ));
+    return params;
+  };
+
+  // TODO: this is attached to a lot of updaters with a preventUpdate arg.
+  // Would be nicer to figure out how to write a JS decorator that can require
+  // an additional arg
+  $scope.saveStateToUrlParams = function() {
+    var params = _.extend($scope.options, {
+      patterns: JSON.stringify($scope.selectedPatternNames),
+      args: JSON.stringify(_.pluck($scope.patternGeneratorOptions, 'args')),
+    });
+    window.location.hash = $.param(params);
+  };
+
+  $scope.loadStateFromUrlParams = function() {
+    var params = $.deparam(window.location.hash.substring(1));
+    $scope.setOptions(params.options || {}, true);
+    $scope.selectedPatternNames = (params.patterns ?
+                                   JSON.parse(params.patterns) :
+                                   ['n_petal_antispin', 'n_petal_inspin']);
+    params.args = (params.args ? JSON.parse(params.args) :
+                   repeat(null, $scope.selectedPatternNames.length));
+    _.each($scope.selectedPatternNames, function(name, i) {
+      $scope.handlePatternSelect(i);   // setup pattern
+      if (params.args[i]) {
+        $scope.patternGeneratorOptions[i].args = params.args[i];  // override args
+        $scope.showGeneratedPattern(i);  // update renderer
+      }
+    });
   };
 
   /* Main */
@@ -169,6 +219,8 @@ app.controller('PoiCtrl', function($scope, $http) {
       $scope.handlePatternSelect(i);
     });
 
+    // tmp test
+    $scope.loadStateFromUrlParams();
   }; $scope.initialize();
 });
 
