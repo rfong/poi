@@ -27,6 +27,8 @@ app.controller('PoiCtrl', function($scope, $http) {
   // Generator parameters, if selected
   $scope.patternGeneratorOptions = repeat({}, $scope.selectedPatternNames.length);
 
+  var DEFAULT_PATTERNS = ['n_petal_antispin', 'n_petal_inspin'];
+
   /* Convenience functions & checkers */
 
   $scope.getPatterns = function(patternNames) {
@@ -172,7 +174,7 @@ app.controller('PoiCtrl', function($scope, $http) {
     $scope.setOptions(params.options || {}, true);
     $scope.selectedPatternNames = (params.patterns ?
                                    JSON.parse(params.patterns) :
-                                   ['n_petal_antispin', 'n_petal_inspin']);
+                                   DEFAULT_PATTERNS);
     params.args = (params.args ? JSON.parse(params.args) :
                    repeat(null, $scope.selectedPatternNames.length));
     _.each($scope.selectedPatternNames, function(name, i) {
