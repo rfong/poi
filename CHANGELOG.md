@@ -1,3 +1,7 @@
+2016-07-21
+-----
++ permalinking
+
 2016-07-20
 -----
 + allow full-pattern rotations
