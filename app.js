@@ -69,11 +69,11 @@ app.controller('PoiCtrl', function($scope, $http) {
     if (!pattern_name || pattern_name == $scope.NULL_SELECT_VALUE) {
       $scope.patternGeneratorOptions[i] = {};
       $scope.updatePattern(i);
-      return;
+      if (!pattern_name) { return; }
     }
     // again, this assumes pattern names and generator names don't overlap...
     // Selected a generative pattern; set up its interface options
-    if (pattern_name in pattern_generators) {
+    else if (pattern_name in pattern_generators) {
       var generator = pattern_generators[pattern_name];
       $scope.patternGeneratorOptions[i] = {
         name: pattern_name,
