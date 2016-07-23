@@ -120,9 +120,13 @@ app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.setSpeed = function() {
     var multiplier = Math.pow(1.5, -$scope.speed);
-    settings.REFRESH = 25 * multiplier;
+    options.REFRESH = 25 * multiplier;
     clearInterval($scope.loop);
     $scope.runMainLoop();
+  };
+
+  $scope.setPoiRatio = function() {
+    options.poi_to_arm_ratio = $scope.poiRatio;
   };
 
   $scope.pauseHandler = function() {
@@ -192,7 +196,7 @@ app.controller('PoiCtrl', function($scope, $http) {
     $scope.loop = setInterval(function() {
       $scope.renderer.draw($scope.theta, $scope.r);
       $scope.advanceTime();
-    }, settings.REFRESH);
+    }, options.REFRESH);
   };
 
   $scope.initialize = function() {
@@ -200,8 +204,7 @@ app.controller('PoiCtrl', function($scope, $http) {
         ctx = canvas.getContext("2d"),
         origin = new Vector(300, 300),
         initial_patterns = $scope.getPatterns();
-    $scope.r = 125;
-    // TODO: poi to arm ratio
+    $scope.r = 150;
     $scope.theta = 0;
 
     $scope.renderer = new TravelingPlotter(

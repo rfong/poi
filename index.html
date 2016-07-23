@@ -88,6 +88,14 @@
 
       <div>
         <span class="control">
+          Poi length
+          <input type="range"
+                 min=0.4 max=0.8 step=0.1
+                 ng-model="poiRatio" ng-init="poiRatio=0.6"
+                 ng-change="setPoiRatio()"
+                 />
+        </span>
+        <span class="control">
           Speed
           <input type="range"
                  min=-2 max=2 step=1

@@ -2,8 +2,6 @@
 // totally different implementation though
 
 var settings = {
-  REFRESH: 25,   // refresh rate in ms
-
   canvas: {
     width: 0,
     height: 0,
@@ -38,6 +36,8 @@ var settings = {
 
 window.options = {
   STEPS: 180,    // # of intervals to divide wave into
+  REFRESH: 25,   // refresh rate in ms
+  poi_to_arm_ratio: 0.6,
 };
 
 function get_d_theta() { return 2 * Math.PI / window.options.STEPS };
@@ -129,9 +129,9 @@ _.extend(Plotter.prototype, {
     this.draw_line_to_origin(x, y);
    
     this.ctx.fillStyle = this.point_color || settings.point.color;
-    if (options.rave_mode) {
+    if (options.rave_mode) {  // head
       this.draw_glowing_dot(x, y, settings.point.size, this.ctx.fillStyle);
-    } else {
+    } else {  // handle
       this.draw_dot(x, y, settings.point.size);
     }
   },
@@ -221,7 +221,7 @@ _.extend(TravelingPlotter.prototype, {
 
       // Draw the point
       self.constructor.prototype.__proto__.draw.apply(self, [
-        pattern.shift_theta(my_theta), r,
+        pattern.shift_theta(my_theta), r * options.poi_to_arm_ratio,
       ]);
 
       // todo: maybe make sure origins are drawn on top since they're smaller?
@@ -253,7 +253,7 @@ _.extend(TravelingPlotter.prototype, {
     this.trace_function(
       function(theta, r) {
         return pattern.traveling_function(theta, r).add(
-               circle_fn(pattern.shift_theta(theta), r));
+               circle_fn(pattern.shift_theta(theta), r * options.poi_to_arm_ratio));
       }, r);
 
     this.ctx.globalAlpha = 1;

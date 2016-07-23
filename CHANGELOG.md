@@ -1,3 +1,7 @@
+2016-07-22
+-----
++ adjustable poi length
+
 2016-07-21
 -----
 + permalinking

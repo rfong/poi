@@ -12,7 +12,7 @@ practical todos
 + ~~rotate the graph to make theta=0 point up~~
 + more patterns. [ideas](https://github.com/infiniteperplexity/visual-spinner-3d/tree/master/json)
 + ~~refactor so the speed is changeable~~
-+ change poi to arm ratio
++ ~~adjustable poi to arm ratio~~
 + ~~urlparams for permalinking~~
 
 pipe dreams / ideas
