@@ -35,9 +35,9 @@ var settings = {
 };
 
 window.options = {
-  STEPS: 180,    // # of intervals to divide wave into
-  REFRESH: 25,   // refresh rate in ms
-  poi_to_arm_ratio: 0.6,
+  STEPS: 180,      // # of intervals to divide wave into
+  REFRESH: 25,     // refresh rate in ms
+  poi_ratio: 0.6,  // poi to arm ratio
 };
 
 function get_d_theta() { return 2 * Math.PI / window.options.STEPS };
@@ -221,7 +221,7 @@ _.extend(TravelingPlotter.prototype, {
 
       // Draw the point
       self.constructor.prototype.__proto__.draw.apply(self, [
-        pattern.shift_theta(my_theta), r * options.poi_to_arm_ratio,
+        pattern.shift_theta(my_theta), r * options.poi_ratio,
       ]);
 
       // todo: maybe make sure origins are drawn on top since they're smaller?
@@ -253,7 +253,7 @@ _.extend(TravelingPlotter.prototype, {
     this.trace_function(
       function(theta, r) {
         return pattern.traveling_function(theta, r).add(
-               circle_fn(pattern.shift_theta(theta), r * options.poi_to_arm_ratio));
+               circle_fn(pattern.shift_theta(theta), r * options.poi_ratio));
       }, r);
 
     this.ctx.globalAlpha = 1;
@@ -394,6 +394,8 @@ function Pattern(options) {
   this.rotation = options.rotation || 0;
   // phase shift of entire pattern
   this.pattern_phase_shift = options.pattern_phase_shift || 0;
+  // beats per period
+  this.beats = Math.abs(this.frequency);
 
   this.shift_theta = function(theta, pattern) {
     /* This one is used to phase shift the poi */

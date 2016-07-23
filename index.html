@@ -91,15 +91,15 @@
           Poi length
           <input type="range"
                  min=0.5 max=0.9 step=0.1
-                 ng-model="poiRatio" ng-init="poiRatio=0.7"
-                 ng-change="setPoiRatio()"
+                 ng-model="options.poi_ratio"
+                 ng-change="setOption('poi_ratio')"
                  />
         </span>
         <span class="control">
           Speed
           <input type="range"
                  min=-2 max=2 step=1
-                 ng-model="speed" ng-init="speed=0"
+                 ng-model="options.speed" ng-init="options.speed=0"
                  ng-change="setSpeed()"
                  />
         </span>

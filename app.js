@@ -119,14 +119,10 @@ app.controller('PoiCtrl', function($scope, $http) {
   };
 
   $scope.setSpeed = function() {
-    var multiplier = Math.pow(1.5, -$scope.speed);
+    var multiplier = Math.pow(1.5, -$scope.options.speed);
     options.REFRESH = 25 * multiplier;
     clearInterval($scope.loop);
     $scope.runMainLoop();
-  };
-
-  $scope.setPoiRatio = function() {
-    options.poi_to_arm_ratio = $scope.poiRatio;
   };
 
   $scope.pauseHandler = function() {
@@ -166,20 +162,22 @@ app.controller('PoiCtrl', function($scope, $http) {
   // Would be nicer to figure out how to write a JS decorator that can require
   // an additional arg
   $scope.saveStateToUrlParams = function() {
-    var params = _.extend($scope.options, {
+    var params = {
+      options: JSON.stringify($scope.options),
       patterns: JSON.stringify($scope.selectedPatternNames),
       args: JSON.stringify(_.pluck($scope.patternGeneratorOptions, 'args')),
-    });
+    };
     window.location.hash = $.param(params);
   };
 
   $scope.loadStateFromUrlParams = function() {
-    var params = $.deparam(window.location.hash.substring(1));
+    var params = _.object(_.map(
+      $.deparam(window.location.hash.substring(1)),
+      function(val, key) { return [key, JSON.parse(val)]; }
+    ));
     $scope.setOptions(params.options || {}, true);
-    $scope.selectedPatternNames = (params.patterns ?
-                                   JSON.parse(params.patterns) :
-                                   DEFAULT_PATTERNS);
-    params.args = (params.args ? JSON.parse(params.args) :
+    $scope.selectedPatternNames = params.patterns || DEFAULT_PATTERNS;
+    params.args = (params.args ||
                    repeat(null, $scope.selectedPatternNames.length));
     _.each($scope.selectedPatternNames, function(name, i) {
       $scope.handlePatternSelect(i);   // setup pattern
