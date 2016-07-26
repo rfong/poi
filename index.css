@@ -1,3 +1,7 @@
+hr {
+  border: none;
+  border-top: 1px dashed #ccc; }
+
 body, input[type=text] {
   font-family: monospace; }
 
@@ -7,16 +11,23 @@ body.rave {
   body.rave a, body.rave a:active, body.rave a:visited, body.rave a:hover {
     color: #fff; }
 
-.controls {
+#canvas-container, #controls {
+  display: inline-block; }
+
+#controls {
+  position: relative;
   width: 600px;
+  vertical-align: top;
+  padding-top: 2em;
   line-height: 2em; }
-  .controls .control {
+  #controls .control {
     margin-right: 2em; }
 
 .param {
   margin-left: 1em; }
 
 .footer {
-  margin-top: 2em; }
+  margin-top: 1em;
+  text-align: center; }
 
 /*# sourceMappingURL=index.css.map */

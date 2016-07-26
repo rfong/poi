@@ -6,6 +6,20 @@ function repeat(o, n) {
   return _.map(_.range(n), function(i) { return o; });
 }
 
+
+function gcd(a, b) {
+  if (a == 0) { return b; }
+  while (b != 0) {
+    if (a > b) {
+      a = a - b;
+    } else {
+      b = b - a;
+    }
+  }
+  return a;
+}
+
+
 app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.NULL_SELECT_VALUE = '---';
@@ -59,6 +73,22 @@ app.controller('PoiCtrl', function($scope, $http) {
       }
     });
     return _.range(argSpec.start, argSpec.stop + argSpec.step, argSpec.step);
+  };
+
+  /* Stats */
+
+  $scope.getRhythm = function() {
+    /* return human-readable string representing rhythm ratio in lowest terms
+     * TODO: figure out what to do for >2 poi?
+     * TODO: this is pretty sloppy -- go blackbox it with where the patterns
+     *  are stored plz
+     */
+    var beat_gcd = gcd($scope.renderer.patterns[0].beats,
+                  $scope.renderer.patterns[1].beats);
+    console.log(_.pluck($scope.renderer.patterns, 'beats'))
+    return _.map(_.pluck($scope.renderer.patterns, 'beats'), function(x) {
+      return x / beat_gcd;
+    }).join(':');
   };
 
   /* Methods that pass configuration changes to the renderer */

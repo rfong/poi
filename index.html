@@ -35,8 +35,22 @@
 
   <div>
 
-    <div class="controls">
-      <!-- Pattern selector -->
+    <div id="canvas-container">
+
+      <canvas id="canvas" width="600px" height="600px">
+        This browser doesn't support canvas! Try
+        <a href="http://google.com/chrome">Google Chrome</a>.
+      </canvas>
+
+      <div class="footer">
+        <a href="http://rfong.github.io">rfong</a> made this | 
+        <a href="http://github.com/rfong/poi">@github</a>
+      </div>
+
+    </div>
+
+    <div id="controls">
+      <!-- Pattern selection -->
       <div class="control"
             ng-repeat="pattern in selectedPatternNames track by $index">
         <span style="color: {{ getPatternColor($index) }}">
@@ -60,6 +74,37 @@
         </span>
       </div>
 
+      <!--<p>
+        Rhythm - {{getRhythm()}}
+      </p>-->
+
+      <hr/>
+
+      <!-- ranged display options -->
+      <div>
+        <span class="control">
+          Poi length
+          <input type="range"
+                 min=0.5 max=0.9 step=0.1
+                 ng-model="options.poi_ratio"
+                 ng-change="setOption('poi_ratio')"
+                 />
+        </span>
+        <span class="control">
+          Speed
+          <input type="range"
+                 min=-2 max=2 step=1
+                 ng-model="options.speed" ng-init="options.speed=0"
+                 ng-change="setSpeed()"
+                 />
+        </span>
+        <span class="control" ng-show="options.DEV">
+          Pause
+          <input type="checkbox" ng-model="paused" ng-change="pauseHandler()" />
+        </span>
+      </div>
+
+      <!-- boolean display options -->
       <div>
         <span control-checkbox
               name="show_pattern_trace"
@@ -86,40 +131,8 @@
         -->
       </div>
 
-      <div>
-        <span class="control">
-          Poi length
-          <input type="range"
-                 min=0.5 max=0.9 step=0.1
-                 ng-model="options.poi_ratio"
-                 ng-change="setOption('poi_ratio')"
-                 />
-        </span>
-        <span class="control">
-          Speed
-          <input type="range"
-                 min=-2 max=2 step=1
-                 ng-model="options.speed" ng-init="options.speed=0"
-                 ng-change="setSpeed()"
-                 />
-        </span>
-        <span class="control" ng-show="options.DEV">
-          Pause
-          <input type="checkbox" ng-model="paused" ng-change="pauseHandler()" />
-        </span>
-      </div>
     </div>
   
-    <canvas id="canvas" width="650px" height="600px" style="">
-      This browser doesn't support canvas! Try
-      <a href="http://google.com/chrome">Google Chrome</a>.
-    </canvas>
-
-  </div>
-
-  <div class="footer">
-    <a href="http://rfong.github.io">rfong</a> made this | 
-    <a href="http://github.com/rfong/poi">@github</a>
   </div>
 
 </body>

@@ -1,3 +1,7 @@
+hr
+  border: none
+  border-top: 1px dashed #ccc
+
 body, input[type=text]
   font-family: monospace
 
@@ -8,8 +12,14 @@ body
     a, a:active, a:visited, a:hover
       color: #fff
 
-.controls
+#canvas-container, #controls
+  display: inline-block
+
+#controls
+  position: relative
   width: 600px
+  vertical-align: top
+  padding-top: 2em
   line-height: 2em
 
   .control
@@ -19,4 +29,5 @@ body
   margin-left: 1em
 
 .footer
-  margin-top: 2em
+  margin-top: 1em
+  text-align: center
