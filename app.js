@@ -77,15 +77,14 @@ app.controller('PoiCtrl', function($scope, $http) {
 
   /* Stats */
 
-  $scope.getRhythm = function() {
-    /* return human-readable string representing rhythm ratio in lowest terms
+  $scope.getBeatRatio = function() {
+    /* return human-readable string representing beat ratio in lowest terms
      * TODO: figure out what to do for >2 poi?
      * TODO: this is pretty sloppy -- go blackbox it with where the patterns
      *  are stored plz
      */
     var beat_gcd = gcd($scope.renderer.patterns[0].beats,
                   $scope.renderer.patterns[1].beats);
-    console.log(_.pluck($scope.renderer.patterns, 'beats'))
     return _.map(_.pluck($scope.renderer.patterns, 'beats'), function(x) {
       return x / beat_gcd;
     }).join(':');
