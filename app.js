@@ -83,6 +83,9 @@ app.controller('PoiCtrl', function($scope, $http) {
      * TODO: this is pretty sloppy -- go blackbox it with where the patterns
      *  are stored plz
      */
+    if (_.some($scope.renderer.patterns, function(p) { return !p; })) {
+      return null;
+    }
     var beat_gcd = gcd($scope.renderer.patterns[0].beats,
                   $scope.renderer.patterns[1].beats);
     return _.map(_.pluck($scope.renderer.patterns, 'beats'), function(x) {

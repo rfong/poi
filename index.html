@@ -74,7 +74,7 @@
         </span>
       </div>
 
-      <p>
+      <p ng-show="getBeatRatio()">
         Beat ratio - {{getBeatRatio()}}
       </p>
 
@@ -121,6 +121,7 @@
               label="RAVE MODE"
               value="false"
               ></span>
+        <br/>
         <!--
         <br/>
         <span control-checkbox
