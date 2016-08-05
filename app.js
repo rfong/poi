@@ -151,7 +151,7 @@ app.controller('PoiCtrl', function($scope, $http) {
   };
 
   $scope.setSpeed = function() {
-    var multiplier = Math.pow(1.5, -$scope.options.speed);
+    var multiplier = Math.pow(1.75, -$scope.options.speed);
     options.REFRESH = 25 * multiplier;
     clearInterval($scope.loop);
     $scope.runMainLoop();
