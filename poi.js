@@ -212,6 +212,14 @@ _.extend(TravelingPlotter.prototype, {
       if (window.options.show_pattern_trace) {
         self.trace_pattern(pattern, r, color);
       }
+      if (window.options.show_arms) {
+        // This draws relative to our traveling origin
+        self.ctx.strokeStyle = color || settings.point.stroke_color;
+        self.draw_line(0, 0,
+          self.initial_origin.x - self.origin.x,
+          self.initial_origin.y - self.origin.y);
+        self.ctx.globalAlpha = 1;
+      }
 
       // DEBUG: near relative theta=0, flash a different color
       // approximate because of step rounding errors caused by speed change
@@ -248,7 +256,6 @@ _.extend(TravelingPlotter.prototype, {
                             ? settings.point.stroke_transparency
                             : settings.rave_mode.stroke_transparency
                            );
-
     var circle_fn = function_generators.circle();
     this.trace_function(
       function(theta, r) {

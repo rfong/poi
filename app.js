@@ -22,6 +22,8 @@ function gcd(a, b) {
 
 app.controller('PoiCtrl', function($scope, $http) {
 
+  /* Scope vars */
+
   $scope.NULL_SELECT_VALUE = '---';
   $scope.options = {};
 
@@ -33,16 +35,51 @@ app.controller('PoiCtrl', function($scope, $http) {
     _.keys(pattern_generators)
   );
 
-  /* Pattern initialization */
-
   // Length should not change, please pretend this is statically allocated -_-
   $scope.selectedPatternNames = [null, null];
-
   // Generator parameters, if selected
   $scope.patternGeneratorOptions = repeat({}, $scope.selectedPatternNames.length);
 
-  var DEFAULT_PATTERNS = ['n_petal_antispin', 'n_petal_inspin'];
+  var DEFAULT_PATTERNS = ['n_petal_antispin', 'extension'];
 
+  /* Main */
+
+  $scope.runMainLoop = function() {
+    $scope.loop = setInterval(function() {
+      $scope.renderer.draw($scope.theta, $scope.r);
+      $scope.advanceTime();
+    }, options.REFRESH);
+  };
+
+  $scope.initialize = function() {
+    var canvas = $('#canvas').get(0),
+        ctx = canvas.getContext("2d"),
+        origin = new Vector(300, 300),
+        initial_patterns = $scope.getPatterns();
+    $scope.r = 150;
+    $scope.theta = 0;
+
+    $scope.renderer = new TravelingPlotter(
+      ctx, origin.x, origin.y, initial_patterns);
+
+    settings.canvas.width = canvas.width;
+    settings.canvas.height = canvas.height;
+
+    $scope.runMainLoop();
+
+    $scope.advanceTime = function() {
+      $scope.theta += get_d_theta();
+      if ($scope.theta > 2*Math.PI) { $scope.theta = 0; }
+    };
+
+    _.each($scope.selectedPatternNames, function(name, i) {
+      $scope.handlePatternSelect(i);
+    });
+
+    // tmp test
+    $scope.loadStateFromUrlParams();
+  };
+ 
   /* Convenience functions & checkers */
 
   $scope.getPatterns = function(patternNames) {
@@ -220,43 +257,8 @@ app.controller('PoiCtrl', function($scope, $http) {
     });
   };
 
-  /* Main */
-
-  $scope.runMainLoop = function() {
-    $scope.loop = setInterval(function() {
-      $scope.renderer.draw($scope.theta, $scope.r);
-      $scope.advanceTime();
-    }, options.REFRESH);
-  };
-
-  $scope.initialize = function() {
-    var canvas = $('#canvas').get(0),
-        ctx = canvas.getContext("2d"),
-        origin = new Vector(300, 300),
-        initial_patterns = $scope.getPatterns();
-    $scope.r = 150;
-    $scope.theta = 0;
-
-    $scope.renderer = new TravelingPlotter(
-      ctx, origin.x, origin.y, initial_patterns);
-
-    settings.canvas.width = canvas.width;
-    settings.canvas.height = canvas.height;
-
-    $scope.runMainLoop();
-
-    $scope.advanceTime = function() {
-      $scope.theta += get_d_theta();
-      if ($scope.theta > 2*Math.PI) { $scope.theta = 0; }
-    };
-
-    _.each($scope.selectedPatternNames, function(name, i) {
-      $scope.handlePatternSelect(i);
-    });
-
-    // tmp test
-    $scope.loadStateFromUrlParams();
-  }; $scope.initialize();
+  // init
+  $scope.initialize();
 });
 
 
@@ -270,13 +272,14 @@ app.directive('controlCheckbox', function() {
     restrict: 'A',
     template: function(element, attrs) {
       return '' +
-      '<span class="control">' + attrs.label +
+      '<span class="control">' +
       '  <input type="checkbox" ' +
       '         ng-model="options.' + attrs.name + '" ' +
       '         ng-init="options.' + attrs.name + '= ' + attrs.value + '; ' +
       '                  setOption(\'' + attrs.name + '\')" ' +
       '         ng-change="setOption(\'' + attrs.name + '\')" ' +
       '         />' +
+        attrs.label +
       '</span>';
     },
   };
