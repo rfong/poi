@@ -378,6 +378,17 @@ var patterns = {
     traveling_function: function_generators.circle(),
   },
 
+  chaser: {
+    phase_shift: Math.PI * 3/2,
+    traveling_function: function_generators.circle(),
+  },
+
+  /*
+  jedi_chaser: {
+    phase_shift: Math.PI / 2,
+    traveling_function: function_generators.circle(),
+  }, */
+
 };
 
 
