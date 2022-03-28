@@ -5,24 +5,25 @@ yay a 2d poi pattern grapher!
 
 hella work in progress
 
-practical todos
+usability tasks
 -----
-+ ~~selectable patterns~~
-+ ~~split/together/same time selector~~ (pattern phase shift)
-+ ~~rotate the graph to make theta=0 point up~~
++ [x] selectable patterns
++ [x] split/together/same time selector (pattern phase shift)
++ [x] rotate the graph to make theta=0 point up
 + more patterns. [ideas](https://github.com/infiniteperplexity/visual-spinner-3d/tree/master/json)
-+ ~~refactor so the speed is changeable~~
-+ ~~adjustable poi to arm ratio~~
-+ ~~urlparams for permalinking~~
++ [x] refactor so the speed is changeable
++ [x] adjustable poi to arm ratio
++ [x] urlparams for permalinking
 
-pipe dreams / ideas
+pipe dreams & fun stuff
 -----
-+ FORCE DIAGRAMS AND GRAVITY OHHH SNAP
-+ ~~beat ratio~~
-+ ~~RAVE MODE~~
-+ ~~allow arbitrary pattern phase shifts and n-flowers (I'm writing the pattern generators pretty modularly so this should follow naturally)~~
-+ refactor to make specifications for stalls and other directional changes easy, probably some kind of chaining mechanism that auto-normalizes itself to overall period.
-+ idk what if I made a polar equation validator that people could input patterns into so I don't have to figure all of them out myself
++ [ ] FORCE DIAGRAMS AND GRAVITY OHHH SNAP
++ [x] beat ratio
++ [x] RAVE MODE
++ [x] allow arbitrary pattern phase shifts and n-flowers (I'm writing the pattern generators pretty modularly so this should follow naturally)
++ [ ] refactor to make specifications for stalls and other directional changes easy, probably some kind of chaining mechanism that auto-normalizes itself to overall period.
++ [ ] idk what if I made a polar equation validator that people could input patterns into so I don't have to figure all of them out myself
++ [ ] 2 petal flowers please
 
 possibly bad ideas
 -----
