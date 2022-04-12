@@ -493,11 +493,11 @@ var pattern_generators = {
       rotation = to_radians(rotation) + settings.UNIVERSAL_ROTATION;
       phase = to_radians(phase);
 
-      // N=2 is a special case because the polygon collapses
-      if (n==2) {
+      // N<=2 is a special case because the polygon collapses
+      if (n<=2) {
         return new Pattern({
           phase_shift: Math.PI,
-          frequency: 3,
+          frequency: 1+n,
           rotation: -rotation * n,
           pattern_phase_shift: phase,
           traveling_function: function_generators.circle(),
@@ -516,7 +516,7 @@ var pattern_generators = {
       { name: 'N',
         default: 4,
         type: 'int',
-        start: 2,
+        start: 1,
         stop: 8,
       },
       { name: 'rotation',
