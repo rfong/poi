@@ -202,6 +202,9 @@ _.extend(TravelingPlotter.prototype, {
         args = arguments;
     _.each(this.get_patterns(), function(pattern, i) {
       var my_theta = theta + pattern.pattern_phase_shift;
+      if (pattern.direction) {
+        my_theta = 2*Math.PI - my_theta;
+      }
       var color = settings.point_colors[i % settings.point_colors.length];
       self.set_traveling_origin(pattern.traveling_function, my_theta, r);
       self.set_point_color(color);
@@ -338,7 +341,9 @@ var traveling_functions = {
 };
 
 
-// Parametric generators that return functions fitting the format above.
+// Parametric generators that return functions fitting the polar
+// fn(theta, radius) format above, which in turn return a 2D vector providing 
+// the output point's cartesian coordinates.
 var function_generators = {
 
   /* :param n: number of sides
@@ -369,10 +374,20 @@ var function_generators = {
     };
   },
 
+  // Travel up and down on a line, bounded to the unit circle.
+  // Essentially the y-component of a normal unit circle.
+  line: function(frequency) {
+    frequency = frequency || 1;
+    return function(theta, r) {
+      theta *= frequency;
+      return new Vector(0, r * Math.sin(theta));
+    };
+  },
+
 };
 
 
-// Complete pattern specifications
+// Specifications for hardcoded, non-generator patterns that are exported
 var patterns = {
 
   test: {
@@ -390,11 +405,15 @@ var patterns = {
     traveling_function: function_generators.circle(),
   },
 
-  /*
+  /*cateye: {
+    frequency: 2,
+    traveling_function: function_generators.line(),
+  },*/
+  
   jedi_chaser: {
     phase_shift: Math.PI / 2,
     traveling_function: function_generators.circle(),
-  }, */
+  },
 
 };
 
@@ -412,6 +431,8 @@ function Pattern(options) {
   this.rotation = options.rotation || 0;
   // phase shift of entire pattern
   this.pattern_phase_shift = options.pattern_phase_shift || 0;
+  // direction
+  this.direction = options.direction || 0;
   // beats per period
   this.beats = Math.abs(this.frequency);
 
@@ -471,6 +492,19 @@ var pattern_generators = {
     generator: function(n, rotation, phase) {
       rotation = to_radians(rotation) + settings.UNIVERSAL_ROTATION;
       phase = to_radians(phase);
+
+      // N=2 is a special case because the polygon collapses
+      if (n==2) {
+        return new Pattern({
+          phase_shift: Math.PI,
+          frequency: 3,
+          rotation: -rotation * n,
+          pattern_phase_shift: phase,
+          traveling_function: function_generators.circle(),
+        });
+      }
+
+      // Otherwise, N>=3
       return new Pattern({
         frequency: -(n-1),
         rotation: -rotation * n,
@@ -482,7 +516,7 @@ var pattern_generators = {
       { name: 'N',
         default: 4,
         type: 'int',
-        start: 3,
+        start: 2,
         stop: 8,
       },
       { name: 'rotation',

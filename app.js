@@ -46,6 +46,7 @@ app.controller('PoiCtrl', function($scope, $http) {
 
   $scope.runMainLoop = function() {
     $scope.loop = setInterval(function() {
+      console.log($scope.theta)
       $scope.renderer.draw($scope.theta, $scope.r);
       $scope.advanceTime();
     }, options.REFRESH);
@@ -166,6 +167,7 @@ app.controller('PoiCtrl', function($scope, $http) {
     if (!generator) { return; }
     var pattern = generator.generator.apply(
       null, $scope.patternGeneratorOptions[i].args);
+    pattern.direction = 1;
     $scope.renderer.patterns[i] = pattern;
     if (!preventUrlUpdate) { $scope.saveStateToUrlParams(); }
   };

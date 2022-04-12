@@ -14,6 +14,10 @@ usability tasks
 + [x] refactor so the speed is changeable
 + [x] adjustable poi to arm ratio
 + [x] urlparams for permalinking
++ [ ] make urlparams more concise
++ [ ] there's a bug in 4-petal anti with 270 phase shift
++ [ ] normalize patterns so that phases always start at the same place
++ [ ] list directionality and timing next to beat ratio
 
 pipe dreams & fun stuff
 -----
@@ -23,7 +27,8 @@ pipe dreams & fun stuff
 + [x] allow arbitrary pattern phase shifts and n-flowers (I'm writing the pattern generators pretty modularly so this should follow naturally)
 + [ ] refactor to make specifications for stalls and other directional changes easy, probably some kind of chaining mechanism that auto-normalizes itself to overall period.
 + [ ] idk what if I made a polar equation validator that people could input patterns into so I don't have to figure all of them out myself
-+ [ ] 2 petal flowers please
++ [x] 2 petal inspin flowers
++ [ ] 2 petal antispin flowers
 
 possibly bad ideas
 -----
