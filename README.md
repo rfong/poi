@@ -15,9 +15,13 @@ usability tasks
 + [x] adjustable poi to arm ratio
 + [x] urlparams for permalinking
 + [ ] make urlparams more concise
-+ [ ] there's a bug in 4-petal anti with 270 phase shift
-+ [ ] normalize patterns so that phases always start at the same place
 + [ ] list directionality and timing next to beat ratio
+
+bugs
+-----
++ [ ] when 4-petal anti phase shift is 180, the poi flies off the screen at theta=0
++ [ ] normalize patterns so that phases always start at the same place
++ [ ] 1 poi is always pattern1-colored regardless of whether pattern 1 or pattern 2 is selected
 
 pipe dreams & fun stuff
 -----
