@@ -334,7 +334,7 @@ var traveling_functions = {
 
   // Circle phase shifted by π
   isolation: function(theta, r) {
-    theta += Math.PI;
+    //theta += Math.PI;
     return new Vector(r * Math.cos(theta), r * Math.sin(theta));
   },
 
@@ -389,11 +389,6 @@ var function_generators = {
 
 // Specifications for hardcoded, non-generator patterns that are exported
 var patterns = {
-
-  test: {
-    frequency: -2,
-    traveling_function: traveling_functions.isolation,
-  },
 
   extension: {
     frequency: 1,
@@ -455,7 +450,8 @@ var pattern_generators = {
       var half_side_rotation = Math.PI / (2*n);
       return new Pattern({
         frequency: -(n-1),
-        pattern_phase_shift: -Math.PI/(2*n) + phase,  // compensation for traveling offset
+        // compensation for traveling offset
+        pattern_phase_shift: -Math.PI/(2*n) + phase + Math.PI/4,
         phase_shift: half_side_rotation,
         rotation: -rotation * n,
         traveling_function: function_generators.polygon(n, rotation, half_side_rotation),
